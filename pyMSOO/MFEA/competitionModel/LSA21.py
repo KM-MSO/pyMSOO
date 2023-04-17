@@ -1,7 +1,7 @@
 from ...utils.EA import * 
 from ...utils import Crossover, Mutation, Selection, Search
 from pyMSOO.utils.EA import AbstractTask 
-from . import AbstractModel 
+from ..model import AbstractModel 
 import numpy as np 
 from ...utils.numba_utils import * 
 

@@ -6,8 +6,8 @@ import scipy
 import inspect 
 import pickle 
 
-from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21
-from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition 
+from pyMSOO.MFEA.model import MFEA_base, SM_MFEA
+from pyMSOO.MFEA.competitionModel import LSA21, SM_MFEA_Competition 
 from pyMSOO.utils.Crossover import *
 from pyMSOO.utils.Mutation import *
 from pyMSOO.utils.Selection import *
