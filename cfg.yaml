@@ -1,10 +1,12 @@
 nc: 2
 nm: 5 
 eta: 3 
+p_ontop: 0.11
+len_mem: 30 
 
 nb_generations: 1000 
 nb_inds_each_task: 100 
-rmp: 0.1
+rmp: 0.3
 evaluate_initial_skillFactor: True 
 
 nb_run: 1 

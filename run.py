@@ -1,4 +1,4 @@
-from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21, MaTGA
+from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21
 from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition
 
 from pyMSOO.utils.Crossover import *
@@ -10,14 +10,10 @@ from pyMSOO.MFEA.benchmark.continous import *
 from pyMSOO.utils.MultiRun.RunMultiTime import * 
 
 from pyMSOO.utils.EA import * 
-from pyMSOO.MFEA.benchmark.continous.CEC17 import CEC17_benchmark 
-from pyMSOO.MFEA.benchmark.continous.WCCI22 import WCCI22_benchmark
 from pyMSOO.MFEA.benchmark.continous.funcs import * 
 
 from pyMSOO.utils.MultiRun.RunMultiTime import * 
 from pyMSOO.utils.MultiRun.RunMultiBenchmark import * 
-
-from pyMSOO.utils.LoadSaveModel.load_utils import loadModel
 
 from pyMSOO.utils.numba_utils import *
 
@@ -27,7 +23,7 @@ import argparse
 import yaml 
 
 
-parser = argparse.ArgumentParser(description='MaTGA no DaS Running')
+parser = argparse.ArgumentParser(description='SM-MFEA DaS Running')
 
 # t, ic = CEC17_benchmark.get_10tasks_benchmark()
 
@@ -69,27 +65,27 @@ def main():
         name_benchmark = [name_benchmark[int(i)] for i in ls_id_tasks]
     
 
-    matgaModel = MultiBenchmark(
+    mfeaModel = MultiBenchmark(
         ls_benchmark= ls_benchmark,
         name_benchmark= name_benchmark,
         ls_IndClass= ls_IndClass,
-        model= MaTGA
+        model= MFEA_base
     )
 
-    matgaModel.compile( 
+    mfeaModel.compile( 
         crossover= SBX_Crossover(nc = args.nc),
         mutation= PolynomialMutation(nm = args.nm),
         dimension_strategy= DaS_strategy(eta= args.eta),
         selection = ElitismSelection()
     )
-    matgaModel.fit(
+    mfeaModel.fit(
         nb_generations= args.nb_generations, 
         rmp = args.rmp, 
         nb_inds_each_task= args.nb_inds_each_task,
         bound_pop = [0, 1],
         evaluate_initial_skillFactor= args.evaluate_initial_skillFactor 
     )
-    a = matgaModel.run(
+    a = mfeaModel.run(
         nb_run= args.nb_run,     
         save_path= args.save_path
     )
