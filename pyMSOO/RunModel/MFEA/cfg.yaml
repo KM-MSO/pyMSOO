@@ -6,9 +6,7 @@ len_mem: 30
 
 nb_generations: 1000 
 nb_inds_each_task: 100 
-nb_inds_min: 20 
-lr: 0.1
-mu: 0.1 
+rmp: 0.3
 evaluate_initial_skillFactor: True 
 
 nb_run: 1 
@@ -16,5 +14,5 @@ save_path: "./RESULTS/"
 
 name_benchmark: WCCI22
 number_tasks: 50
-ls_id_run: "1-1-1"
+ls_id_run: "1-1-1" # default is all; want to specific id= 1,2,3,4 ->ls_id_run: "1-2-3-4"
 

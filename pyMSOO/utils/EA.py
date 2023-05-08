@@ -167,6 +167,12 @@ class SubPopulation:
             else:
                 raise TypeError('Int, Slice or List[int], not ' + str(type(index)))
     
+    def __copyIndividual__(self, ind):
+        new_ind = self.IndClass(ind.genes)
+        new_ind.fcost = ind.fcost 
+        new_ind.skill_factor = ind.skill_factor 
+        return new_ind
+
     def __getRandomItems__(self, size:int = None, replace:bool = False):
         if size == 0:
             return []

@@ -56,12 +56,12 @@ class model(AbstractModel.model):
                     skf_oa, skf_ob = numba_randomchoice(np.array([pa.skill_factor, pb.skill_factor]), size= 2, replace= True)
                     oa, ob = self.crossover(pa, pb, skf_oa, skf_ob)
 
-                    # dimension strategy
-                    p_of_oa, knwl_oa = (pa, pb.skill_factor) if pa.skill_factor == skf_oa else (pb, pa.skill_factor)
-                    p_of_ob, knwl_ob = (pa, pb.skill_factor) if pa.skill_factor == skf_oa else (pb, pa.skill_factor)
+                    # # dimension strategy
+                    # p_of_oa, knwl_oa = (pa, pb.skill_factor) if pa.skill_factor == skf_oa else (pb, pa.skill_factor)
+                    # p_of_ob, knwl_ob = (pa, pb.skill_factor) if pa.skill_factor == skf_oa else (pb, pa.skill_factor)
 
-                    oa = self.dimension_strategy(oa, knwl_oa, p_of_oa)
-                    ob = self.dimension_strategy(ob, knwl_ob, p_of_ob)
+                    # oa = self.dimension_strategy(oa, knwl_oa, p_of_oa)
+                    # ob = self.dimension_strategy(ob, knwl_ob, p_of_ob)
                 
                 else:
                     # mutate
@@ -84,7 +84,7 @@ class model(AbstractModel.model):
             # update operators
             self.crossover.update(population = population)
             self.mutation.update(population = population)
-            self.dimension_strategy.update(population = population)
+            # self.dimension_strategy.update(population = population)
 
             # save history
             self.history_cost.append([ind.fcost for ind in population.get_solves()])

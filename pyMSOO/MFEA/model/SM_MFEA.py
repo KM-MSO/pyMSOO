@@ -151,7 +151,7 @@ class model(AbstractModel.model):
         # Initialize memory M_smp
         M_smp = [self.battle_smp(i, len(self.tasks), lr, mu) for i in range(len(self.tasks))]
 
-        #save history
+        # save history
         self.history_cost.append([ind.fcost for ind in population.get_solves()])
         self.history_smp.append([M_smp[i].get_smp() for i in range(len(self.tasks))])
         epoch = 1
@@ -253,8 +253,8 @@ class model(AbstractModel.model):
         self.last_pop = population
         self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
         print()
-        print(p_choose_father)
-        print(eval_k)
+        # print(p_choose_father)
+        # print(eval_k)
         print('END!')
         return self.last_pop.get_solves()
     
