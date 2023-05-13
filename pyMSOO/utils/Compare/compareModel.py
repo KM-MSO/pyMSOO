@@ -63,7 +63,7 @@ class CompareModel():
         else: 
             # fig.suptitle("\n", size=15)
             pass
-        fig.set_facecolor("white")
+        fig.set_facecolor((208/255, 206/255, 206/255, 1))
         fig.subplots(shape[0], shape[1])
 
         if step >= 10:
@@ -103,6 +103,7 @@ class CompareModel():
                     fig.axes[idx_task].set_title("Task " + str(idx_task + 1), fontsize= title_size)
                 else: 
                     fig.axes[idx_task].set_title("Task " + str(idx_task + 1))
+            # fig.axes[idx_task].set_facecolor((208/255, 206/255, 206/255, 1))
             if label_size_x is not None: 
                 fig.axes[idx_task].set_xlabel("Generations", fontsize=label_size_x)
             else:
@@ -124,14 +125,21 @@ class CompareModel():
 
         lines, labels = fig.axes[-1].get_legend_handles_labels()
         if bbox_to_anchor is not None: 
-            fig.legend(lines, labels,fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
+            # leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 0), fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
+            leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 1), fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
         else:
-            fig.legend(lines, labels,fontsize=legend_size, handletextpad= handletextpad, loc=label_loc, ncol=label_shape[1])
+            leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 1),fontsize=legend_size, handletextpad= handletextpad, loc=label_loc, ncol=label_shape[1])
         if pad is not None: 
             fig.tight_layout(pad) 
         else:
             fig.tight_layout()
+        # fig.legend(facecolor= (208/255, 206/255, 206/255, 1.0))
+        # plt.savefig("xinchao2.png", transparent= True)
+        # fig.savefig("xinchao2.png", bbox_inches='tight', facecolor= (208/255, 206/255, 206/255, 1))
         plt.show()
+        
+        # plt.savefig("xinchao.png", transparent= True)
+
         if re:
             return fig
 
