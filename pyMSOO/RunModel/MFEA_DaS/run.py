@@ -10,14 +10,10 @@ from pyMSOO.MFEA.benchmark.continous import *
 from pyMSOO.utils.MultiRun.RunMultiTime import * 
 
 from pyMSOO.utils.EA import * 
-from pyMSOO.MFEA.benchmark.continous.CEC17 import CEC17_benchmark 
-from pyMSOO.MFEA.benchmark.continous.WCCI22 import WCCI22_benchmark
 from pyMSOO.MFEA.benchmark.continous.funcs import * 
 
 from pyMSOO.utils.MultiRun.RunMultiTime import * 
 from pyMSOO.utils.MultiRun.RunMultiBenchmark import * 
-
-from pyMSOO.utils.LoadSaveModel.load_utils import loadModel
 
 from pyMSOO.utils.numba_utils import *
 

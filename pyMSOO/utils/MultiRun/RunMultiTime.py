@@ -6,7 +6,7 @@ from typing import List
 from pathlib import Path
 
 from ...MFEA.model import AbstractModel
-from ..LoadSaveModel import saveModel
+from ..LoadSaveModel.save_utils import saveModel
 
 def get_model_name(model: AbstractModel.model):
     fullname = model.__module__
@@ -207,6 +207,7 @@ class MultiTimeModel:
                 self.status = 'Running'
                 self.set_attribute()
 
+                self.__class__ = MultiTimeModel
                 save_result = saveModel(self, save_path)
                 print('\n\nKeyboardInterrupt: ' +
                       save_result + ' model, model is not Done')
@@ -216,6 +217,7 @@ class MultiTimeModel:
             self.set_attribute()
             self.status = 'Done'
             print('DONE!')
+            self.__class__ = MultiTimeModel
             print(saveModel(self, save_path))
 
 

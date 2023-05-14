@@ -173,7 +173,7 @@ def hf06(x,dim):
 
 
 class WCCI22_2tasks_TaskClass():
-    def __init__(self,dim,func_id,Ub,Lb, shift: list = 0, rotation_matrix: np.ndarray = None,SS:list =[]):
+    def __init__(self,dim, func_id, Lb, Ub, shift: list = 0, rotation_matrix: np.ndarray = None,SS:list =[]):
         self.dim = dim
         self.shift =shift
         self.rotation_matrix =rotation_matrix

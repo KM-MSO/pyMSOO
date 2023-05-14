@@ -1,4 +1,4 @@
-from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21
+from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21, MaTGA
 from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition
 
 from pyMSOO.utils.Crossover import *
@@ -27,7 +27,7 @@ import argparse
 import yaml 
 
 
-parser = argparse.ArgumentParser(description='SM-MFEA DaS Running')
+parser = argparse.ArgumentParser(description='MaTGA no DaS Running')
 
 # t, ic = CEC17_benchmark.get_10tasks_benchmark()
 
@@ -69,27 +69,27 @@ def main():
         name_benchmark = [name_benchmark[int(i)] for i in ls_id_tasks]
     
 
-    mfeaModel = MultiBenchmark(
+    matgaModel = MultiBenchmark(
         ls_benchmark= ls_benchmark,
         name_benchmark= name_benchmark,
         ls_IndClass= ls_IndClass,
-        model= MFEA_base
+        model= MaTGA
     )
 
-    mfeaModel.compile( 
+    matgaModel.compile( 
         crossover= SBX_Crossover(nc = args.nc),
         mutation= PolynomialMutation(nm = args.nm),
         dimension_strategy= DaS_strategy(eta= args.eta),
         selection = ElitismSelection()
     )
-    mfeaModel.fit(
+    matgaModel.fit(
         nb_generations= args.nb_generations, 
         rmp = args.rmp, 
         nb_inds_each_task= args.nb_inds_each_task,
         bound_pop = [0, 1],
         evaluate_initial_skillFactor= args.evaluate_initial_skillFactor 
     )
-    a = mfeaModel.run(
+    a = matgaModel.run(
         nb_run= args.nb_run,     
         save_path= args.save_path
     )

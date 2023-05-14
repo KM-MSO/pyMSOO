@@ -17,8 +17,6 @@ from pyMSOO.MFEA.benchmark.continous.funcs import *
 from pyMSOO.utils.MultiRun.RunMultiTime import * 
 from pyMSOO.utils.MultiRun.RunMultiBenchmark import * 
 
-from pyMSOO.utils.LoadSaveModel.load_utils import loadModel
-
 from pyMSOO.utils.numba_utils import *
 
 from pyMSOO.RunModel.config import benchmark_cfg

@@ -1,5 +1,10 @@
 from pathlib import Path 
 import pickle 
+import os 
+import numpy as np 
+
+from .load_utils import loadModel
+from pyMSOO.MFEA.benchmark.continous import * 
 
 def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
     '''
@@ -47,7 +52,8 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
                 if 'attr_tasks' in submodel.kwargs.keys():
                     for attribute in submodel.kwargs['attr_tasks']:
                         # setattr(submodel, getattr(subm, name), None)
-                        setattr(getattr(submodel, attribute), 'tasks', None)
+                        if hasattr(submodel, attribute): 
+                            setattr(getattr(submodel, attribute), 'tasks', None)
                         pass
                 else:
                     submodel.crossover.tasks = None
@@ -110,7 +116,8 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
                 if 'attr_tasks' in submodel.kwargs.keys():
                     for attribute in submodel.kwargs['attr_tasks']:
                         # setattr(submodel, getattr(subm, name), None)
-                        setattr(getattr(submodel, attribute), 'tasks', tasks)
+                        if hasattr(submodel, attribute): 
+                            setattr(getattr(submodel, attribute), 'tasks', tasks)
                         pass
                 else:
                     submodel.crossover.tasks = tasks
@@ -121,4 +128,37 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
 
     return 'Saved'
 
+def export_history2txt(save_path= "./Complex/", \
+                source_path = "./RESULTS/COMPLEX/SMP_v2/", \
+                prefix_name = "MTOSOO_P",\
+                ls_tasks =  WCCI22_benchmark.get_complex_benchmark(1)[0],
+                total_evals = int(100000 * 2), 
+                steps = 1000, 
+                load_func = loadModel
+                ):
+    '''
+    Export history cost of a all files in a folder to .txt files that has format of CEC competition
+    '''
+    for each_name_model in os.listdir(os.path.join(source_path)):
+        model = load_func(os.path.join(source_path, each_name_model), ls_tasks) 
+        
+        tmp = np.concatenate([model.ls_model[i].history_cost for i in range(len(model.ls_model))], axis=1)
+        stt = np.arange(total_evals // steps, total_evals + total_evals // steps, total_evals // steps)
+        # stt = stt.reshape(1,int((200000)/ 2000))
+        stt = stt.reshape(1, -1) 
+        tmp = tmp.T
+        if tmp.shape[0] != stt.shape[1]:
+            tmp = tmp[:, -stt.shape[1]:]
+        
+        assert tmp.shape[1] == stt.shape[1], print(tmp.shape)
+        tmp4= np.concatenate([stt, tmp], axis=0).T
 
+        if not os.path.isdir(save_path):
+            os.mkdir(save_path)
+
+        f = open(save_path + prefix_name+ each_name_model.split(".")[0] + ".txt", "w")
+        for line in tmp4: 
+            f.write(", ".join([str(int(line[0]))] + [str('{:.6f}'.format(e)) for e in line[1:]]) + "\n")
+        f.close()
+    
+    

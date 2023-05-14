@@ -1,18 +1,16 @@
 nc: 2
 nm: 5 
 eta: 3 
-p_ontop: 0.11
-len_mem: 30 
 
-nb_generations: 50
+nb_generations: 1000 
 nb_inds_each_task: 100 
-rmp: 0.3
+rmp: 0.1
 evaluate_initial_skillFactor: True 
 
 nb_run: 1 
 save_path: "./RESULTS/"
 
-name_benchmark: CEC17
-number_tasks: 10
+name_benchmark: WCCI22
+number_tasks: 50
 ls_id_run: "1-1-1" # default is all; want to specific id= 1,2,3,4 ->ls_id_run: "1-2-3-4"
 

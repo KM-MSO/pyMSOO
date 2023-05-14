@@ -6,8 +6,8 @@ RUN pip install -r requirements.txt
 
 # Copy lib 
 COPY pyMSOO /workspace/pyMSOO
-COPY run.sh /workspace/run.sh 
+# COPY run.sh /workspace/run.sh 
 
-CMD bash run.sh 
-
+# CMD bash run.sh 
+CMD "ok"
 # CMD echo 'helloworld'
