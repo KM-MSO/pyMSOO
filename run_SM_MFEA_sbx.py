@@ -29,7 +29,7 @@ ls_benchmark = []
 ls_IndClass = []
 ls_tasks = [2]
 name_benchmark = [] 
-
+print(ls_tasks)
 for i in ls_tasks:
     # t, ic = WCCI22_benchmark.get_complex_benchmark(i)
     t, ic = WCCI22_benchmark.get_50tasks_benchmark(i)
@@ -61,11 +61,11 @@ smpModel.compile(
         selection = ElitismSelection(random_percent= 0.0)
 )
 smpModel.fit(
-        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
+        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 4,
         lr = 0.1 ,mu= 0.1,
         evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run=1,     
+    nb_run=5,     
     save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_SBX/'
 )
