@@ -1,3 +1,4 @@
+from pyMSOO.utils.EA import Individual
 from ..Abstract import AbstractSearch
 from ...EA import AbstractTask, Individual, Population
 
@@ -6,6 +7,15 @@ import numpy as np
 import scipy.stats
 from ...numba_utils import * 
 import time
+
+class NoSearch(AbstractSearch): 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__()
+    
+    def __call__(self, ind, *args, **kwargs) -> Individual:
+        return ind 
+
+    
 
 class SHADE(AbstractSearch):
     def __init__(self, len_mem = 30, p_best_type:str = 'ontop', p_ontop = 0.1, tournament_size = 2) -> None:
@@ -300,7 +310,8 @@ class LSHADE_LSA21(AbstractSearch):
         # )
         # new_genes = np.where(new_genes > 1, (ind.genes + 1)/2, new_genes) 
         # new_genes = np.where(new_genes < 0, (ind.genes + 0)/2, new_genes) 
-
+        if np.all(new_genes == ind.genes): 
+            return None 
         new_ind = self.IndClass(new_genes)
         new_ind.skill_factor = ind.skill_factor
 
@@ -321,8 +332,7 @@ class LSHADE_LSA21(AbstractSearch):
                 del self.archive[ind.skill_factor][numba_randomchoice(len(self.archive[ind.skill_factor]))]
                 self.archive[ind.skill_factor].append(ind)
             return new_ind 
-        else: 
-            return ind 
+        return new_ind
 
 
     def update(self, population, *args, **kwargs) -> None:

@@ -33,6 +33,7 @@ class model():
         self.count_pre_line = 0
         self.printed_before_percent = -2
         self.percent_print = percent_print 
+        self.time_end = -1 
         
 
     def render_history(self, shape: Tuple[int, int] = None, min_cost = 1e-6,title = "", yscale = None, ylim: Tuple[float, float] = None, re_fig = False):
