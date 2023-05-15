@@ -4,7 +4,7 @@ from numba import jit
 
 from . import AbstractModel
 from ...utils import Crossover, Mutation, Selection, DimensionAwareStrategy
-from ...utils.Mutation import GaussMutation
+from ...utils.Mutation import GaussMutation, PolynomialMutation
 from ...utils.EA import *
 from ...utils.numba_utils import numba_randomchoice, numba_random_gauss, numba_random_cauchy, numba_random_uniform
 from ...utils.Search import *

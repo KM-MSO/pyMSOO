@@ -80,7 +80,7 @@ def main():
     )
     a = smpModel.run(
         nb_run= 15,
-        save_path= './RESULTS/Many/EME_BI_w_DaS1/'
+        save_path= './RESULTS/Many/EME_BI_w_DaS2/'
     )
 
 if __name__ == "__main__":
