@@ -4,13 +4,14 @@ from numba import jit
 
 from . import AbstractModel
 from ...utils import Crossover, Mutation, Selection, DimensionAwareStrategy
-from ...utils.Mutation import GaussMutation
+from ...utils.Mutation import GaussMutation, PolynomialMutation
 from ...utils.EA import *
 from ...utils.numba_utils import numba_randomchoice, numba_random_gauss, numba_random_cauchy, numba_random_uniform
 from ...utils.Search import *
 
 class model(AbstractModel.model):
     TOLERANCE = 1e-6
+    INF = 1e8
     def compile(self, 
         IndClass: Type[Individual],
         tasks: List[AbstractTask], 
@@ -38,12 +39,6 @@ class model(AbstractModel.model):
             nb_inds_min = nb_inds_each_task
 
         self.rmp = np.full((len(self.tasks), len(self.tasks)), 0.3)
-        # np.fill_diagonal(self.rmp, 0)
-
-        # self.delta = [[[] for _ in range(len(self.tasks))] for _ in range(len(self.tasks))]
-
-        # self.s_rmp = [[[] for _ in range(len(self.tasks))] for _ in range(len(self.tasks))]
-
         self.learningPhase = [LearningPhase(self.IndClass, self.tasks, t) for t in self.tasks]
         
         # initialize population
@@ -58,6 +53,7 @@ class model(AbstractModel.model):
         self.nb_inds_tasks = [nb_inds_each_task] * len(self.tasks)
 
         MAXEVALS = nb_generations * nb_inds_each_task * len(self.tasks)
+        self.max_eval_k = [nb_generations * nb_inds_each_task] * len(self.tasks)
         self.eval_k = [0] * len(self.tasks)
         epoch = 1
         
@@ -66,22 +62,22 @@ class model(AbstractModel.model):
                             best = np.array([sub.__getBestIndividual__.genes for sub in self.population]),)
 
         while sum(self.eval_k) < MAXEVALS:
-            self.population.update_rank()
+            self.delta = [[[] for _ in range(len(self.tasks))] for _ in range(len(self.tasks))]
 
+            self.s_rmp = [[[] for _ in range(len(self.tasks))] for _ in range(len(self.tasks))]
+
+            self.population.update_rank()
+            # print(self.eval_k)
             if sum(self.eval_k) >= epoch * nb_inds_each_task * len(self.tasks):
                 # save history
                 self.history_cost.append([ind.fcost for ind in self.population.get_solves()])
                 self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[sum(self.nb_inds_tasks)], self.history_cost[-1]], use_sys= True)
                 epoch += 1
-            
-            self.delta = [[[] for _ in range(len(self.tasks))] for _ in range(len(self.tasks))]
-
-            self.s_rmp = [[[] for _ in range(len(self.tasks))] for _ in range(len(self.tasks))]
 
             # offsprings = self.reproduction(sum(self.nb_inds_tasks), self.population)
 
             # self.population = self.population + offsprings
-
+            # start = time.time()
             matingPool = Population(
                 self.IndClass,
                 nb_inds_tasks = [0] * len(self.tasks), 
@@ -98,11 +94,12 @@ class model(AbstractModel.model):
                     matingPool.__addIndividual__(self.population[idx].ls_inds[i])
 
             offsprings = self.reproduction(len(self.population), matingPool)
-            
-            # merge and update rank
+        
+            # # merge and update rank
             self.population = matingPool + offsprings
             self.population.update_rank()
-            
+            # end = time.time()
+            # print("E: ", end - start)
             # selection
             self.nb_inds_tasks = [int(
                 int(max((nb_inds_min - nb_inds_max) * (sum(self.eval_k)/MAXEVALS) + nb_inds_max, nb_inds_min))
@@ -113,11 +110,14 @@ class model(AbstractModel.model):
             self.crossover.update(population = self.population)
             self.mutation.update(population = self.population)
             self.dimension_strategy.update(population = self.population)
-
+            # start = time.time()
             self.updateRMP(c)
-
+            # end = time.time()
+            # print("G: ", end - start)
+            # start = time.time()
             self.phaseTwo(D0)
-
+            # end = time.time()
+            # print("G: ", end - start)
         # self.phaseTwo(D0)
         print('\nEND!')
 
@@ -134,8 +134,8 @@ class model(AbstractModel.model):
                                 nb_inds_tasks = [0] * len(self.tasks), 
                                 dim = self.dim_uss,
                                 list_tasks= self.tasks)
-        counter = np.zeros((len(self.tasks)))
-        
+        counter = np.zeros((len(self.tasks)))  
+
         stopping = False
         while not stopping:
             pa, pb = mating_pool.__getRandomInds__(2)
@@ -148,14 +148,25 @@ class model(AbstractModel.model):
             rmpValue = numba_random_gauss(mean = max(self.rmp[ta][tb], self.rmp[tb][ta]), sigma = 0.1)
 
             if ta == tb:
-                self.eval_k[ta] += 2
+                # self.eval_k[ta] += 2
 
                 oa, ob = self.crossover(pa, pb)
 
                 oa.skill_factor = ta
                 ob.skill_factor = ta
-                
+
+                if self.eval_k[ta] >= self.max_eval_k[ta]:
+                    oa.fcost = model.INF
+                else:
+                    self.eval_k[ta] += 1
+
                 offsprings.__addIndividual__(oa)
+
+                if self.eval_k[tb] >= self.max_eval_k[tb]:
+                    ob.fcost = model.INF
+                else:
+                    self.eval_k[tb] += 1
+
                 offsprings.__addIndividual__(ob)
 
                 counter[ta] += 2
@@ -167,12 +178,16 @@ class model(AbstractModel.model):
                     if counter[ta] < sub_size and random.random() < self.rmp[ta][tb]/(self.rmp[ta][tb] + self.rmp[tb][ta]):
                         o.skill_factor = ta
                         o = self.dimension_strategy(o, tb, pa)
-                        o.fcost = self.tasks[ta](o)
+                        if self.eval_k[ta] >= self.max_eval_k[ta]:
+                            o.fcost = model.INF
+                        else:
+                            self.eval_k[ta] += 1
+                            o.fcost = self.tasks[ta](o)
 
                         offsprings.__addIndividual__(o)
                         
                         counter[ta] += 1
-                        self.eval_k[ta] += 1
+                        # self.eval_k[ta] += 1
                         
                         if pa.fcost > o.fcost:
                             self.delta[ta][tb].append(pa.fcost - o.fcost)
@@ -181,12 +196,17 @@ class model(AbstractModel.model):
                     elif counter[tb] < sub_size:
                         o.skill_factor = tb
                         o = self.dimension_strategy(o, ta, pb)
-                        o.fcost = self.tasks[tb](o)
+        
+                        if self.eval_k[tb] >= self.max_eval_k[tb]:
+                            o.fcost = model.INF
+                        else:
+                            self.eval_k[tb] += 1
+                            o.fcost = self.tasks[tb](o)
 
                         offsprings.__addIndividual__(o)
                         
                         counter[tb] += 1
-                        self.eval_k[tb] += 1
+                        # self.eval_k[tb] += 1
 
                         if pb.fcost > o.fcost:
                             self.delta[tb][ta].append(pb.fcost - o.fcost)
@@ -201,11 +221,17 @@ class model(AbstractModel.model):
                     
                     oa, _ = self.crossover(pa, paa)
                     oa.skill_factor = ta
+                    
+                    if self.eval_k[ta] >= self.max_eval_k[ta]:
+                        oa.fcost = model.INF
+                    else:
+                        self.eval_k[ta] += 1
+                        oa.fcost = self.tasks[ta](oa)
 
                     offsprings.__addIndividual__(oa)
 
                     counter[ta] += 1
-                    self.eval_k[ta] += 1
+                    # self.eval_k[ta] += 1
 
                 if counter[tb] < sub_size:
                     pbb: Individual = self.population[tb].__getRandomItems__()
@@ -215,11 +241,17 @@ class model(AbstractModel.model):
                     
                     ob, _ = self.crossover(pb, pbb)
                     ob.skill_factor = tb
-                    
+
+                    if self.eval_k[tb] >= self.max_eval_k[tb]:
+                        ob.fcost = model.INF
+                    else:
+                        self.eval_k[tb] += 1
+                        ob.fcost = self.tasks[tb](ob)
+
                     offsprings.__addIndividual__(ob)
                     
                     counter[tb] += 1
-                    self.eval_k[tb] += 1
+                    # self.eval_k[tb] += 1
                     
             stopping = sum(counter >= sub_size) == len(self.tasks)
 
@@ -227,12 +259,13 @@ class model(AbstractModel.model):
 
     def phaseTwo(self, D0):
         fcosts = [sub.getFitness() for sub in self.population]
-
+        # start = time.time()
         D = self.calculateD(population = np.array([[ind.genes for ind in sub.ls_inds]for sub in self.population]), 
                             population_fitness = np.array(fcosts),
                             best = np.array([sub.__getBestIndividual__.genes for sub in self.population]),
                             )
-        
+        # end = time.time()
+        # print("A: ", end - start)
         maxFit = np.max(fcosts, axis=1)
         minFit = np.min(fcosts, axis=1)
         maxDelta = maxFit - minFit + 1e-99
@@ -245,10 +278,11 @@ class model(AbstractModel.model):
                             dim = self.dim_uss,
                             nb_inds_tasks=[0] * len(self.tasks),
                             list_tasks=self.tasks)
-            
+        # start = time.time()
         for i in range(len(self.tasks)):
             self.eval_k[i] += self.learningPhase[i].evolve(self.population[i], nextPop, sigma[i], maxDelta[i])
-        
+        # end = time.time()
+        # print("B: ", end - start)
         self.population = nextPop
 
     def calculateD(self, population: np.array, population_fitness: np.array, best: np.array) -> np.array:
@@ -262,8 +296,8 @@ class model(AbstractModel.model):
         
         D = np.empty((len(self.tasks)))
         for i in range(len(self.tasks)):
-            gene_max = [np.max(population[i], axis = 1).tolist()] * 50
-            gene_min = [np.min(population[i], axis = 1).tolist()] * 50
+            gene_max = [np.max(population[i], axis = 1).tolist()] * self.dim_uss
+            gene_min = [np.min(population[i], axis = 1).tolist()] * self.dim_uss
 
             D[i] = self.__class__._calculateD(np.array(gene_max).T, np.array(gene_min).T, population[i], population_fitness[i], best[i], model.TOLERANCE)
         return D
@@ -319,7 +353,7 @@ class LearningPhase():
         self.list_tasks = list_tasks
         self.task = task
         self.sum_improv = [0.0] * LearningPhase.M
-        self.consume_fes = [0.0] * LearningPhase.M
+        self.consume_fes = [1.0] * LearningPhase.M
         self.mem_cr = [0.5] * LearningPhase.H
         self.mem_f = [0.5] * LearningPhase.H
         self.s_cr = []
@@ -334,6 +368,7 @@ class LearningPhase():
         self.gen += 1
 
         if self.gen > 1:
+            # start = time.time()
             self.best_opcode = self.__class__.updateOperator(sum_improve = self.sum_improv, 
                                                              consume_fes = self.consume_fes, 
                                                              M = LearningPhase.M)
@@ -341,18 +376,24 @@ class LearningPhase():
             self.sum_improv = [0.0] * LearningPhase.M
             self.consume_fes = [1.0] * LearningPhase.M
 
+            # end = time.time()
+            # print("C: ", end - start)
+
         # self.updateMemory()
         
         pbest_size = max(5, int(0.15 * len(subPop)))
         # pbest = subPop.__getRandomItems__(size = pbest_size)
         idx_inds = np.argsort([ind.fcost for ind in subPop.ls_inds])
         pbest =  [subPop.ls_inds[i] for i in idx_inds[:pbest_size]] 
-
+        # start1 = time.time()
         for ind in subPop:
+            # start1 = time.time()
+            # start = time.time()
             r = random.randint(0, LearningPhase.M - 1)
             cr = numba_random_gauss(self.mem_cr[r], 0.1)
             f = numba_random_cauchy(self.mem_f[r], 0.1)
-
+            # end = time.time()
+            # print("A: ", end - start)
             opcode = random.randint(0, LearningPhase.M)
             if opcode == LearningPhase.M:
                 opcode = self.best_opcode
@@ -360,10 +401,17 @@ class LearningPhase():
             self.consume_fes[opcode] += 1
             
             if opcode == 0:
+                # start = time.time()
                 child = self.searcher[opcode](ind, subPop, pbest, cr, f)
+                # end = time.time()
+                # print("C: ", end - start)
             elif opcode == 1:
+                # start = time.time()
                 child = self.searcher[opcode](ind, return_newInd=True)
+                # end = time.time()
+                # print("D: ", end - start)
 
+            # start = time.time()
             child.skill_factor = ind.skill_factor
             child.fcost = self.task(child)
             
@@ -384,8 +432,11 @@ class LearningPhase():
                 survival = ind
             
             nextPop.__addIndividual__(survival)
-        
-        return pbest_size
+            # end = time.time()
+            # print("M: ", end - start)
+        # end = time.time()
+        # print("F: ", end - start1)
+        return len(subPop)
     
     def pbest1(self, ind: Individual, subPop: SubPopulation, best: List[Individual], cr: float, f: float) -> Individual:
         pbest = best[random.randint(0, len(best) - 1)]
