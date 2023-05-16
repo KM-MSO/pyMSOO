@@ -1,5 +1,5 @@
 from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21
-from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition
+from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition, SM_MFEA_Multiparent
 from pyMSOO.utils.Crossover import *
 from pyMSOO.utils.Mutation import *
 from pyMSOO.utils.Selection import *
@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [2]
+ls_tasks = [8]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:
@@ -37,20 +37,20 @@ for i in ls_tasks:
     ls_IndClass.append(ic)
     name_benchmark.append(str(i))
 
-# # cec17
-# t, ic = CEC17_benchmark.get_10tasks_benchmark()
-# path = './RESULTS/result/CEC17/SM_MFEA/'
+# cec17
+t, ic = CEC17_benchmark.get_10tasks_benchmark()
+path = './RESULTS/result/CEC17/SM_MFEA/'
 
-# ls_benchmark = [t]
-# ls_IndClass = [ic]
-# name_benchmark = ["cec17"]
+ls_benchmark = [t]
+ls_IndClass = [ic]
+name_benchmark = ["cec17"]
 
 
 smpModel = MultiBenchmark(
     ls_benchmark= ls_benchmark,
     name_benchmark= name_benchmark,
     ls_IndClass= ls_IndClass,
-    model= SM_MFEA_Competition
+    model= SM_MFEA_Multiparent
 )
 
 smpModel.compile( 
@@ -61,11 +61,11 @@ smpModel.compile(
         selection = ElitismSelection(random_percent= 0.0)
 )
 smpModel.fit(
-        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 4,
+        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
         lr = 0.1 ,mu= 0.1,
         evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run=15,     
+    nb_run=1,     
     save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_SBX/'
 )

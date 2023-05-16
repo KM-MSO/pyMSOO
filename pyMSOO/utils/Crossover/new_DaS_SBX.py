@@ -55,12 +55,12 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
     
         return gene_oa, gene_ob
 
-    def __das(ind_ab, ind_ac, original_ind, dim_uss, pcd_ab, pcd_ac):
-        idx_transfer_ab = np.random.rand(dim_uss) < pcd_ab 
-        
-        idx_transfer_ac = np.random.rand(dim_uss) < np.where(pcd_ac > 0.5, pcd_ac, 0)
-
-        priority_ab = np.random.rand(dim_uss) < (pcd_ab / (pcd_ab + pcd_ac))
+    def __das(ind_ab, ind_ac, original_ind, dim_uss, pcd_ab, pcd_ac, idx_transfer_ab):
+        if pcd_ac is not None: 
+            idx_transfer_ac = np.random.rand(dim_uss) < np.where(pcd_ac > 0.5, pcd_ac, 0)
+        else: 
+            idx_transfer_ac = np.zeros(dim_uss, dtype= np.int)
+        priority_ab = np.zeros(dim_uss, dtype= np.int) + 1 
 
         idx_transfer_ab = np.where(idx_transfer_ab == idx_transfer_ac, priority_ab * idx_transfer_ab, idx_transfer_ab)
         idx_transfer_ac = np.where(idx_transfer_ab == idx_transfer_ac, (1 - priority_ab) * idx_transfer_ac, idx_transfer_ac)
@@ -84,7 +84,8 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         #         idx_transfer_ac[np.random.choice(idx_notsame)] = True
         
         new_ind_genes = np.where(idx_transfer_ab, ind_ab, original_ind)
-        new_ind_genes = np.where(idx_transfer_ac, ind_ac, new_ind_genes)
+        if pcd_ac is not None: 
+            new_ind_genes = np.where(idx_transfer_ac, ind_ac, new_ind_genes)
         
         return new_ind_genes, np.sum(idx_transfer_ab), np.sum(idx_transfer_ac) 
         
@@ -98,22 +99,39 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         take only dimension allow transfer in 
 
         '''
-        pcd_pa_pb = PCD_pa[skf_pb]
+        pcd_pa_pb = PCD_pa[skf_pb].copy()
+        pcd_pa = PCD_pa.copy()
          
         # take skf_pc 
         ## compute mse_los -> take loss max 
-        mse_loss = np.mean(np.sqrt((PCD_pa - pcd_pa_pb) ** 2), axis= 1)
+        idx_transfer_ab = np.random.rand(len(pa)) < pcd_pa_pb  
+        thresshold_skf_pc = (1 - idx_transfer_ab) / 2 
+
+         
+        pcd_pa = np.append(pcd_pa, thresshold_skf_pc.reshape(1, -1), axis= 0 )
+
+        mse_loss = np.mean(np.sqrt((pcd_pa - pcd_pa_pb) ** 2), axis= 1)
         skf_pc = np.argmax(mse_loss) 
+        if skf_pc == len(mse_loss) - 1 or np.all(thresshold_skf_pc < 0.5): 
+            skf_pc = None
+        if skf_pb == pa.skill_factor or skf_pc == pa.skill_factor: 
+            skf_pc = None 
         
         pb = population[skf_pb].__getRandomItems__() 
+
         genes_o1_ab, genes_o2_ab = self.__class__._crossover(pa.genes, pb.genes, pa.skill_factor == pb.skill_factor, 50, 2)
-
-        pc = population[skf_pc].__getRandomItems__() 
-        genes_o1_ac, genes_o2_ac = self.__class__._crossover(pa.genes, pc.genes, pa.skill_factor == pc.skill_factor, 50, 2) 
-
+        if skf_pc is not None: 
+            pc = population[skf_pc].__getRandomItems__() 
+            genes_o1_ac, genes_o2_ac = self.__class__._crossover(pa.genes, pc.genes, pa.skill_factor == pc.skill_factor, 50, 2) 
+        else: 
+            genes_o1_ac, genes_o2_ac = None, None 
         
-        gene_oa, len_ab, len_ac = self.__class__.__das(genes_o1_ab, genes_o1_ac, pa, 50, PCD_pa[skf_pb], PCD_pa[skf_pc])
-        gene_ob, len_ab2, len_ac2 = self.__class__.__das(genes_o2_ab, genes_o2_ac, pa, 50, PCD_pa[skf_pb], PCD_pa[skf_pc])
+        if skf_pc is not None: 
+            gene_oa, len_ab, len_ac = self.__class__.__das(genes_o1_ab, genes_o1_ac, pa.genes, 50, PCD_pa[skf_pb], PCD_pa[skf_pc], idx_transfer_ab)
+            gene_ob, len_ab2, len_ac2 = self.__class__.__das(genes_o2_ab, genes_o2_ac, pa.genes, 50, PCD_pa[skf_pb], PCD_pa[skf_pc], idx_transfer_ab)
+        else:
+            gene_oa, len_ab, len_ac = self.__class__.__das(genes_o1_ab, genes_o1_ac, pa.genes, 50, PCD_pa[skf_pb], None, idx_transfer_ab)
+            gene_ob, len_ab2, len_ac2 = self.__class__.__das(genes_o2_ab, genes_o2_ac, pa.genes, 50, PCD_pa[skf_pb], None, idx_transfer_ab)
 
         oa = self.IndClass(gene_oa)
         ob = self.IndClass(gene_ob)
