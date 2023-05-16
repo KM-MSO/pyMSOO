@@ -66,6 +66,6 @@ smpModel.fit(
         evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run=5,     
+    nb_run=15,     
     save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_SBX/'
 )

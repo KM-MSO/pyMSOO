@@ -213,6 +213,15 @@ class MultiTimeModel:
                       save_result + ' model, model is not Done')
                 traceback.print_exc()
                 break
+            try:
+                
+                temp_class = self.__class__ 
+                self.__class__ = MultiTimeModel
+                save_result = saveModel(self, save_path, remove_tasks= False)
+                self.__class__ = temp_class 
+                print("saved ", idx_seed)
+            except:
+                print("Cannot save")
         else:
             self.set_attribute()
             self.status = 'Done'

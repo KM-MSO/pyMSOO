@@ -59,9 +59,6 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
                     submodel.crossover.tasks = None
                     submodel.mutation.tasks = None
 
-    f = open(PATH, 'wb')
-    pickle.dump(model, f)
-    f.close()
     try:
         f = open(PATH, 'wb')
         pickle.dump(model, f)

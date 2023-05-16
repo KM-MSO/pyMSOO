@@ -57,7 +57,8 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
 
     def __das(ind_ab, ind_ac, original_ind, dim_uss, pcd_ab, pcd_ac):
         idx_transfer_ab = np.random.rand(dim_uss) < pcd_ab 
-        idx_transfer_ac = np.random.rand(dim_uss) < pcd_ac 
+        
+        idx_transfer_ac = np.random.rand(dim_uss) < np.where(pcd_ac > 0.5, pcd_ac, 0)
 
         priority_ab = np.random.rand(dim_uss) < (pcd_ab / (pcd_ab + pcd_ac))
 
@@ -74,18 +75,18 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
             else:
                 idx_transfer_ab[np.random.choice(idx_notsame)] = True
             
-        if np.all(idx_transfer_ac == 0) or np.all(ind_ac[idx_transfer_ac] == original_ind[idx_transfer_ac]):
-            # alway crossover -> new individual
-            idx_notsame = np.where(ind_ac != original_ind)[0]
-            if len(idx_notsame) == 0:
-                idx_transfer_ac = np.ones((dim_uss, ), dtype= np.bool_)
-            else:
-                idx_transfer_ac[np.random.choice(idx_notsame)] = True
+        # if np.all(idx_transfer_ac == 0) or np.all(ind_ac[idx_transfer_ac] == original_ind[idx_transfer_ac]):
+        #     # alway crossover -> new individual
+        #     idx_notsame = np.where(ind_ac != original_ind)[0]
+        #     if len(idx_notsame) == 0:
+        #         idx_transfer_ac = np.ones((dim_uss, ), dtype= np.bool_)
+        #     else:
+        #         idx_transfer_ac[np.random.choice(idx_notsame)] = True
         
         new_ind_genes = np.where(idx_transfer_ab, ind_ab, original_ind)
         new_ind_genes = np.where(idx_transfer_ac, ind_ac, new_ind_genes)
         
-        return new_ind_genes
+        return new_ind_genes, np.sum(idx_transfer_ab), np.sum(idx_transfer_ac) 
         
     def __call__(self, pa: Individual, skf_pb, population: Population, PCD_pa,  *args, **kwargs) -> Tuple[Individual, Individual]:
         '''
@@ -111,8 +112,8 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         genes_o1_ac, genes_o2_ac = self.__class__._crossover(pa.genes, pc.genes, pa.skill_factor == pc.skill_factor, 50, 2) 
 
         
-        gene_oa = self.__class__.__das(genes_o1_ab, genes_o1_ac, pa, 50, PCD_pa[skf_pb], PCD_pa[skf_pc])
-        gene_ob = self.__class__.__das(genes_o2_ab, genes_o2_ac, pa, 50, PCD_pa[skf_pb], PCD_pa[skf_pc])
+        gene_oa, len_ab, len_ac = self.__class__.__das(genes_o1_ab, genes_o1_ac, pa, 50, PCD_pa[skf_pb], PCD_pa[skf_pc])
+        gene_ob, len_ab2, len_ac2 = self.__class__.__das(genes_o2_ab, genes_o2_ac, pa, 50, PCD_pa[skf_pb], PCD_pa[skf_pc])
 
         oa = self.IndClass(gene_oa)
         ob = self.IndClass(gene_ob)
@@ -120,4 +121,4 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         oa.skill_factor = pa.skill_factor
         ob.skill_factor = pa.skill_factor
 
-        return oa, ob, skf_pc 
+        return oa, ob, skf_pc

@@ -57,10 +57,15 @@ class model(AbstractModel.model):
         search: Search.DifferentialEvolution.LSHADE_LSA21,
         dimension_strategy: DimensionAwareStrategy.AbstractDaS = DimensionAwareStrategy.NoDaS(),
         selection: Selection.AbstractSelection= Selection.ElitismSelection(), 
+        # multi_parent = Crossover.new_DaS_SBX_Crossover(),
         *args, **kwargs):
         super().compile(IndClass, tasks, crossover, mutation, dimension_strategy, selection, *args, **kwargs)
         self.search = search 
         self.search.getInforTasks(IndClass, tasks, seed = self.seed)
+
+        # self.multi_parent_crossover = multi_parent 
+        # self.multi_parent_crossover.getInforTasks(IndClass, tasks, self.seed)
+
 
     def render_smp(self,  shape = None, title = None, figsize = None, dpi = 100, step = 1, re_fig = False, label_shape= None, label_loc= None):
         
@@ -227,8 +232,6 @@ class model(AbstractModel.model):
 
                         Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50) 
                         Delta[skf_pa][skf_pb] += max([Delta2, 0]) ** 2 
-
-
 
                         if oa.fcost < pa.fcost: 
                             population[skf_pa][idx_ind].fcost = oa.fcost 
