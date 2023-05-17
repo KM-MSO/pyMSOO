@@ -105,10 +105,10 @@ class model(AbstractModel.model):
                     for i in range(int(nb_inds_each_task/2)):
                         pa, pb = self.population[t].__getRandomItems__(2)
 
-                        if random.random() < 0.9:
-                            oa, ob = self.crossover(pa, pb, t, t)           
-                        else:  
-                            oa, ob = pa, pb
+                        oa, ob = self.crossover(pa, pb, t, t)
+                        u = np.where(np.random.random() < 0.9)[0]
+                        oa.genes[u] = pa.genes[u]
+                        ob.genes[u] = pb.genes[u] 
 
                         # mutate
                         oa = self.mutation(oa, return_newInd = True)
@@ -252,7 +252,7 @@ class model(AbstractModel.model):
         similarity = self.KLD(genes_a, genes_b)
         # assert not np.isnan(similarity)
         if np.isnan(similarity):
-            similarity = 0.001
+            similarity = 0
             
         return similarity
 
@@ -273,17 +273,17 @@ class model(AbstractModel.model):
         try:
             det_b = max(numba_linalgo_det(gene_cov_b), 0.001)
         except:
-            det_b = 0.001
+            det_b = 1e-6
         try:
             det_a = max(numba_linalgo_det(gene_cov_a), 0.001)
         except:
-            det_a = 0.001
+            det_a = 1e-6
         
         if np.isnan(det_b):
-            det_b = 0.001
+            det_b = 1e-6
 
         if np.isnan(det_a):
-            det_a = 0.001
+            det_a = 1e-6
 
         kld_a_b = np.trace(numba_dot(inv_gene_cov_b, gene_cov_a)) \
                 + numba_dot(numba_dot(np.transpose(gene_mean_b - gene_mean_a), inv_gene_cov_b), (gene_mean_b - gene_mean_a)) - D\
