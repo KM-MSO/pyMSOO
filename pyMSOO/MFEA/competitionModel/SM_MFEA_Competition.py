@@ -57,14 +57,14 @@ class model(AbstractModel.model):
         search: Search.DifferentialEvolution.LSHADE_LSA21,
         dimension_strategy: DimensionAwareStrategy.AbstractDaS = DimensionAwareStrategy.NoDaS(),
         selection: Selection.AbstractSelection= Selection.ElitismSelection(), 
-        multi_parent = Crossover.new_DaS_SBX_Crossover(),
+        # multi_parent = Crossover.new_DaS_SBX_Crossover(),
         *args, **kwargs):
         super().compile(IndClass, tasks, crossover, mutation, dimension_strategy, selection, *args, **kwargs)
         self.search = search 
         self.search.getInforTasks(IndClass, tasks, seed = self.seed)
 
-        self.multi_parent_crossover = multi_parent 
-        self.multi_parent_crossover.getInforTasks(IndClass, tasks, self.seed)
+        # self.multi_parent_crossover = multi_parent 
+        # self.multi_parent_crossover.getInforTasks(IndClass, tasks, self.seed)
 
 
     def render_smp(self,  shape = None, title = None, figsize = None, dpi = 100, step = 1, re_fig = False, label_shape= None, label_loc= None):
@@ -233,82 +233,53 @@ class model(AbstractModel.model):
                         Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50) 
                         Delta[skf_pa][skf_pb] += max([Delta2, 0]) ** 2 
 
-
-                        # TM-FIXME: unswap 
-                        offsprings.__addIndividual__(population[skf_pa].__copyIndividual__(pa))
-                        # if oa.fcost < pa.fcost: 
-                        #     population[skf_pa][idx_ind].fcost = oa.fcost 
-                        #     population[skf_pa][idx_ind].genes = oa.genes  
+                        if oa.fcost < pa.fcost: 
+                            population[skf_pa][idx_ind].fcost = oa.fcost 
+                            population[skf_pa][idx_ind].genes = oa.genes  
                         
-                        # elif ob.fcost < population[skf_pa][idx_ind].fcost: 
-                        #     population[skf_pa][idx_ind].fcost = ob.fcost
-                        #     population[skf_pa][idx_ind].genes = ob.genes 
-                        # else:
-                        #     offsprings.__addIndividual__(population[skf_pa].__copyIndividual__(pa))
+                        elif ob.fcost < population[skf_pa][idx_ind].fcost: 
+                            population[skf_pa][idx_ind].fcost = ob.fcost
+                            population[skf_pa][idx_ind].genes = ob.genes 
+                        else:
+                            offsprings.__addIndividual__(population[skf_pa].__copyIndividual__(pa))
 
 
                     else:
                         pa = population[skf_pa][idx_ind]
+                        pb = population[skf_pb].__getRandomItems__()
 
-                        # TM-ANCHOR: inter-crossover: multiparent
-                        oa, ob, skf_pc = self.multi_parent_crossover(pa, skf_pb, population, self.dimension_strategy.prob[skf_pa])
+                        if np.all(pa.genes == pb.genes):
+                            pb = population[skf_pb].__getWorstIndividual__
+                        
+                        oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
 
+                        # dimension strategy
+                        oa = self.dimension_strategy(oa, pb.skill_factor, pa)
+                        ob = self.dimension_strategy(ob, pb.skill_factor, pb if skf_pa == skf_pb else pa)
+                        
                         # add oa, ob to offsprings population and eval fcost
                         offsprings.__addIndividual__(oa)
                         offsprings.__addIndividual__(ob)
                         offsprings.__addIndividual__(population[skf_pa].__copyIndividual__(pa))
 
-                        # Calculate the maximum improvement percetage
                         count_Delta[skf_pa][skf_pb] += 2
-                        count_Delta[skf_pa][skf_pc] += 2 
                         eval_k[skf_pa] += 2
                         turn_eval += 2
+
+                        # Calculate the maximum improvement percetage
                         Delta1 = (pa.fcost - oa.fcost) / (pa.fcost ** 2 + 1e-50)
                         Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50)
 
                         Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
                         Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
-                        Delta[skf_pa][skf_pc] += max([Delta1, 0])**2
-                        Delta[skf_pa][skf_pc] += max([Delta2, 0])**2
-                        # TM-FIXME: unswap 
-                        offsprings.__addIndividual__(population[skf_pa].__copyIndividual__(pa))
 
-
-                        # TM-ANCHOR: inter-crossover: DaS
-                        # pb = population[skf_pb].__getRandomItems__()
-
-                        # if np.all(pa.genes == pb.genes):
-                        #     pb = population[skf_pb].__getWorstIndividual__
+                        if oa.fcost < pa.fcost: 
+                            population[skf_pa][idx_ind].genes = oa.genes 
+                            population[skf_pa][idx_ind].fcost = oa.fcost 
                         
-                        # oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
-
-                        # # dimension strategy
-                        # oa = self.dimension_strategy(oa, pb.skill_factor, pa)
-                        # ob = self.dimension_strategy(ob, pb.skill_factor, pb if skf_pa == skf_pb else pa)
-                        
-                        # # add oa, ob to offsprings population and eval fcost
-                        # offsprings.__addIndividual__(oa)
-                        # offsprings.__addIndividual__(ob)
-                        # offsprings.__addIndividual__(population[skf_pa].__copyIndividual__(pa))
-
-                        # count_Delta[skf_pa][skf_pb] += 2
-                        # eval_k[skf_pa] += 2
-                        # turn_eval += 2
-
-                        # # Calculate the maximum improvement percetage
-                        # Delta1 = (pa.fcost - oa.fcost) / (pa.fcost ** 2 + 1e-50)
-                        # Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50)
-
-                        # Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
-                        # Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
-
-                        # if oa.fcost < pa.fcost: 
-                        #     population[skf_pa][idx_ind].genes = oa.genes 
-                        #     population[skf_pa][idx_ind].fcost = oa.fcost 
-                        
-                        # if ob.fcost < population[skf_pa][idx_ind].fcost: 
-                        #     population[skf_pa][idx_ind].genes = ob.genes 
-                        #     population[skf_pa][idx_ind].fcost = ob.fcost 
+                        if ob.fcost < population[skf_pa][idx_ind].fcost: 
+                            population[skf_pa][idx_ind].genes = ob.genes 
+                            population[skf_pa][idx_ind].fcost = ob.fcost 
 
                 else:
                     pa= population[skf_pa][idx_ind]
@@ -340,14 +311,14 @@ class model(AbstractModel.model):
 
                     Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
                     Delta[skf_pa][skf_pb] += max([Delta2, 0])**2 
-                    # TM-FIXME: unswap 
-                    # if oa.fcost < pa.fcost: 
-                    #     population[skf_pa][idx_ind].genes = oa.genes 
-                    #     population[skf_pa][idx_ind].fcost = oa.fcost 
+
+                    if oa.fcost < pa.fcost: 
+                        population[skf_pa][idx_ind].genes = oa.genes 
+                        population[skf_pa][idx_ind].fcost = oa.fcost 
                     
-                    # if ob.fcost < population[skf_pa][idx_ind].fcost: 
-                    #     population[skf_pa][idx_ind].genes = ob.genes 
-                    #     population[skf_pa][idx_ind].fcost = ob.fcost 
+                    if ob.fcost < population[skf_pa][idx_ind].fcost: 
+                        population[skf_pa][idx_ind].genes = ob.genes 
+                        population[skf_pa][idx_ind].fcost = ob.fcost 
 
 
 

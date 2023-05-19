@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [8]
+ls_tasks = [10]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:
@@ -37,13 +37,13 @@ for i in ls_tasks:
     ls_IndClass.append(ic)
     name_benchmark.append(str(i))
 
-# cec17
-t, ic = CEC17_benchmark.get_10tasks_benchmark()
-path = './RESULTS/result/CEC17/SM_MFEA/'
+# # cec17
+# t, ic = CEC17_benchmark.get_10tasks_benchmark()
+# path = './RESULTS/result/CEC17/SM_MFEA/'
 
-ls_benchmark = [t]
-ls_IndClass = [ic]
-name_benchmark = ["cec17"]
+# ls_benchmark = [t]
+# ls_IndClass = [ic]
+# name_benchmark = ["cec17"]
 
 
 smpModel = MultiBenchmark(
@@ -66,6 +66,6 @@ smpModel.fit(
         evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run=1,     
-    save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_SBX/'
+    nb_run= 15,     
+    save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_SBX_multiparent/'
 )

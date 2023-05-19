@@ -187,7 +187,13 @@ class SubPopulation:
         self.ls_inds.append(individual)
         if update_rank:
             self.update_rank()
-
+    
+    def __copyIndividual__(self, ind):
+        new_ind = self.IndClass(ind.genes)
+        new_ind.fcost = ind.fcost 
+        new_ind.skill_factor = ind.skill_factor 
+        return new_ind
+    
     def __add__(self, other):
         assert self.task == other.task, 'Cannot add 2 sub-population do not have the same task'
         assert self.dim == other.dim, 'Cannot add 2 sub-population do not have the same dimensions'

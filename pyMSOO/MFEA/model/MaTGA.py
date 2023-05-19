@@ -285,6 +285,12 @@ class model(AbstractModel.model):
         if np.isnan(det_a):
             det_a = 0.001
 
+        if np.isnan(det_b):
+            det_b = 0.001
+
+        if np.isnan(det_a):
+            det_a = 0.001
+
         kld_a_b = np.trace(numba_dot(inv_gene_cov_b, gene_cov_a)) \
                 + numba_dot(numba_dot(np.transpose(gene_mean_b - gene_mean_a), inv_gene_cov_b), (gene_mean_b - gene_mean_a)) - D\
                 + np.log(det_b/det_a)

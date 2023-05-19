@@ -9,7 +9,7 @@ import matplotlib
 
 class CompareModel():
     # TODO so sánh
-    def __init__(self, models: List[AbstractModel.model], label: List[str] = None) -> None:
+    def __init__(self, models: List[AbstractModel.model] = [], label: List[str] = None) -> None:
         self.models = models
         if label is None:
             label = [m.name for m in self.models]
@@ -385,11 +385,11 @@ class CompareModel_original():
                 path_algo = os.path.join(path, list_algo[idx_algo])
                 # count_benchmark = 0
 
-                for benchmark_mso in os.listdir(path_algo):
+                for benchmark_mso in sorted(os.listdir(path_algo)):
                     count_benchmark = benchmark_mso.split(".")[0]
                     count_benchmark = count_benchmark.split("_")[-1]
                     count_benchmark = int(count_benchmark) - 1
-
+                    print(path_algo, benchmark_mso)
                     model = loadModel(os.path.join(
                         path_algo, benchmark_mso), ls_benchmark[count_benchmark])
 

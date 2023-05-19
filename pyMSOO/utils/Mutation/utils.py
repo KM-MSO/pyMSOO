@@ -19,7 +19,8 @@ class AbstractMutation():
         self.IndClass = IndClass
         #seed
         np.random.seed(seed)
-        pass
+        return self
+
     def update(self, *arg, **kwargs) -> None:
         pass
     def compute_accept_prob(self, new_fcost, min_fcost): 

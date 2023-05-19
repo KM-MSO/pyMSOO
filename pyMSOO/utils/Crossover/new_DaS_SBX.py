@@ -110,11 +110,15 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
          
         pcd_pa = np.append(pcd_pa, thresshold_skf_pc.reshape(1, -1), axis= 0 )
 
-        mse_loss = np.mean(np.sqrt((pcd_pa - pcd_pa_pb) ** 2), axis= 1)
+        # mse_loss = np.mean(np.sqrt((pcd_pa - pcd_pa_pb) ** 2), axis= 1)
+        mse_loss = np.average((pcd_pa * (1 - idx_transfer_ab)), axis= 1)
         skf_pc = np.argmax(mse_loss) 
         if skf_pc == len(mse_loss) - 1 or np.all(thresshold_skf_pc < 0.5): 
             skf_pc = None
         if skf_pb == pa.skill_factor or skf_pc == pa.skill_factor: 
+            skf_pc = None 
+        
+        if np.max(mse_loss) == 0: 
             skf_pc = None 
         
         pb = population[skf_pb].__getRandomItems__() 
