@@ -170,6 +170,8 @@ class CompareModel():
         else:
             list_algo = os.listdir(path)
             print(list_algo)
+            idx_main_algo = input("Type index main algo")
+            idx_main_algo = int(idx_main_algo) 
             benchmarks = [name_ben.split(
                 "_")[-1].split(".")[0] for name_ben in os.listdir(os.path.join(path, list_algo[0]))]
             ls_model_cost = [np.zeros(
@@ -178,18 +180,18 @@ class CompareModel():
             for idx_algo in range(len(list_algo)):
                 path_algo = os.path.join(path, list_algo[idx_algo])
                 # count_benchmark = 0
-
+                print(path_algo)
                 for benchmark_mso in os.listdir(path_algo):
                     count_benchmark = benchmark_mso.split(".")[0]
                     count_benchmark = count_benchmark.split("_")[-1]
                     count_benchmark = int(count_benchmark) - 1
-
+                    print(benchmark_mso)
                     model = loadModel(os.path.join(
                         path_algo, benchmark_mso), ls_benchmark[count_benchmark])
-
+                    
                     ls_model_cost[idx_algo][count_benchmark] = model.history_cost[-1]
                     # count_benchmark += 1
-
+                    del model 
             result_table = np.zeros(
                 shape=(len(benchmarks), len(list_algo)-1, 3), dtype=int)
             name_row = []

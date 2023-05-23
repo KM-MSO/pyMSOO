@@ -224,14 +224,15 @@ class model(AbstractModel.model):
 
                     Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
                     Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
-                    
-                    if skf_pa != skf_pb: 
-                        if skf_pc is not None: 
-                            count_Delta[skf_pa][skf_pc] += 2 
 
-                        if skf_pc is not None:
-                            Delta[skf_pa][skf_pc] += max([Delta1, 0])**2
-                            Delta[skf_pa][skf_pc] += max([Delta2, 0])**2
+                    # TM-FIXME: do not update for skf_pc                     
+                    # if skf_pa != skf_pb: 
+                    #     if skf_pc is not None: 
+                    #         count_Delta[skf_pa][skf_pc] += 2 
+
+                    #     if skf_pc is not None:
+                    #         Delta[skf_pa][skf_pc] += max([Delta1, 0])**2
+                    #         Delta[skf_pa][skf_pc] += max([Delta2, 0])**2
 
 
                 else:

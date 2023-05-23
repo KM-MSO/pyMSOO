@@ -59,8 +59,8 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         if pcd_ac is not None: 
             idx_transfer_ac = np.random.rand(dim_uss) < np.where(pcd_ac > 0.5, pcd_ac, 0)
         else: 
-            idx_transfer_ac = np.zeros(dim_uss, dtype= np.int)
-        priority_ab = np.zeros(dim_uss, dtype= np.int) + 1 
+            idx_transfer_ac = np.zeros(dim_uss, dtype= np.int64)
+        priority_ab = np.zeros(dim_uss, dtype= np.int64) + 1 
 
         idx_transfer_ab = np.where(idx_transfer_ab == idx_transfer_ac, priority_ab * idx_transfer_ab, idx_transfer_ab)
         idx_transfer_ac = np.where(idx_transfer_ab == idx_transfer_ac, (1 - priority_ab) * idx_transfer_ac, idx_transfer_ac)
@@ -101,25 +101,25 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         '''
         pcd_pa_pb = PCD_pa[skf_pb].copy()
         pcd_pa = PCD_pa.copy()
+        
          
         # take skf_pc 
         ## compute mse_los -> take loss max 
-        idx_transfer_ab = np.random.rand(len(pa)) < pcd_pa_pb  
-        thresshold_skf_pc = (1 - idx_transfer_ab) / 2 
+        idx_transfer_ab = np.random.rand(len(pa)) < pcd_pa_pb  # [1, 0, 0, 1]
 
-         
-        pcd_pa = np.append(pcd_pa, thresshold_skf_pc.reshape(1, -1), axis= 0 )
-
-        # mse_loss = np.mean(np.sqrt((pcd_pa - pcd_pa_pb) ** 2), axis= 1)
-        mse_loss = np.average((pcd_pa * (1 - idx_transfer_ab)), axis= 1)
-        skf_pc = np.argmax(mse_loss) 
-        if skf_pc == len(mse_loss) - 1 or np.all(thresshold_skf_pc < 0.5): 
-            skf_pc = None
+        if np.sum((1 - idx_transfer_ab)) > 0: # ton tai chieu khong transfer
+            pcd_pa[pa.skill_factor] = 0  
+            mse_loss = np.sum((pcd_pa * (1 - idx_transfer_ab)), axis= 1) / np.sum((1 - idx_transfer_ab))
+            skf_pc = np.argmax(mse_loss) 
+        else: 
+            skf_pc = None 
+        # if np.all(thresshold_skf_pc < 0.5): 
+        #     skf_pc = None
         if skf_pb == pa.skill_factor or skf_pc == pa.skill_factor: 
             skf_pc = None 
         
-        if np.max(mse_loss) == 0: 
-            skf_pc = None 
+        # if skf_pc is not None and mse_loss[skf_pc] < 0.5: 
+        #     skf_pc = None 
         
         pb = population[skf_pb].__getRandomItems__() 
 
