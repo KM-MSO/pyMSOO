@@ -37,13 +37,13 @@ for i in ls_tasks:
     ls_IndClass.append(ic)
     name_benchmark.append(str(i))
 
-# # cec17
-# t, ic = CEC17_benchmark.get_10tasks_benchmark()
-# path = './RESULTS/result/CEC17/SM_MFEA/'
+# cec17
+t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_complicate()
+path = './RESULTS/result/CEC17/SM_MFEA/'
 
-# ls_benchmark = [t]
-# ls_IndClass = [ic]
-# name_benchmark = ["cec17"]
+ls_benchmark = [t]
+ls_IndClass = [ic]
+name_benchmark = ["cec17"]
 
 
 smpModel = MultiBenchmark(

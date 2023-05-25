@@ -4,12 +4,28 @@ from .funcs import Sphere, Weierstrass, Rosenbrock, Ackley, Schwefel, Griewank, 
 from typing import Tuple, Type, List
 import os
 from scipy.io import loadmat
-
+import numpy as np 
 path = os.path.dirname(os.path.realpath(__file__))
 
 class CEC17_benchmark():
     dim = 50
     task_size = 2
+
+    def get_10_tasks_benchmark_ver_complicate(fix= False) -> Tuple[List[AbstractFunc], Type[Individual_func]]: 
+        tasks = [
+        Sphere(     50,shift= [-80, 0] * 25,    bound= [-100, 100]),   # 0
+        Sphere(     50,shift= [80, 0] * 25,   bound= [-100, 100]),  # 80
+        Sphere(     50,shift= [-80, 80, 0, -80, 80] * 25,  bound= [-100, 100]), # -80
+        Weierstrass(25,shift= np.array([-0.4, 0.4, 0, -0.4, 0.4] * 5) + 0.1, bound= [-0.5, 0.5]), # -0.4
+        Rosenbrock( 50,shift= -1,   bound= [-50, 50]),# 0
+        Ackley(     50,shift= [40, -40, 0, 40, -40] * 10,   bound= [-50, 50]),    # 40
+        Weierstrass(50,shift= [-0.4, 0.4, 0, -0.4, -0.4] * 10, bound= [-0.5, 0.5]), # -0.4
+        Schwefel(   50,shift= 0,    bound= [-500, 500], fixed = fix), # 420.9687
+        Griewank(   50,shift= [-70, 70] * 25, bound= [-100, 100]), # -80, 80
+        Rastrigin(  50,shift= [-40, 40, 0, -40, 40] * 10, bound= [-50, 50]),# -40, 40
+        ]
+        return tasks, Individual_func
+
 
     def get_10tasks_benchmark(fix = False)-> Tuple[List[AbstractFunc], Type[Individual_func]]:
         tasks = [

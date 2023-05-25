@@ -21,7 +21,7 @@ class AbstractFunc(AbstractTask):
             self.inv_rotation_matrix = np.identity(dim)
 
         tmp = np.array(shift).reshape(-1, )
-        assert dim % len(tmp) == 0
+        assert dim % len(tmp) == 0, len(tmp) 
         self.shift = np.array([[i] * int(dim / len(tmp))
                               for i in tmp]).reshape(-1, )
 
