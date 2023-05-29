@@ -159,6 +159,10 @@ class model(AbstractModel.model):
         self.history_cost.append([ind.fcost for ind in population.get_solves()])
         self.history_smp.append([M_smp[i].get_smp() for i in range(len(self.tasks))])
         epoch = 1
+        average_rate_success = []
+        ls_count_success = [] 
+        ls_count_Delta = []
+
 
         while sum(eval_k) <= MAXEVALS:
             turn_eval = 0
@@ -166,6 +170,7 @@ class model(AbstractModel.model):
             # Delta epoch
             Delta:List[List[float]] = np.zeros((len(self.tasks), len(self.tasks) + 1)).tolist()
             count_Delta: List[List[float]] = np.zeros((len(self.tasks), len(self.tasks) + 1)).tolist()
+            count_success = np.zeros((len(self.tasks), len(self.tasks) + 1)).tolist() 
 
             # initial offspring_population of generation
             offsprings = Population(
@@ -259,6 +264,13 @@ class model(AbstractModel.model):
 
                     Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
                     Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
+                if Delta1 > 0: count_success[skf_pa][skf_pb] += 1
+                if Delta2 > 0: count_success[skf_pa][skf_pb] += 1
+
+
+            average_rate_success.append(np.array(count_success) / (np.array(count_Delta) + 0.00001)) 
+            ls_count_success.append(count_success) 
+            ls_count_Delta.append(count_Delta)
 
             # merge
             population = population + offsprings
@@ -280,6 +292,9 @@ class model(AbstractModel.model):
                 M_smp[skf].update_SMP(Delta[skf], count_Delta[skf])
 
         #solve
+        np.save("avarage_success_multiparent.npy", average_rate_success) 
+        np.save("ls_count_success_multiparent.npy", ls_count_success)
+        np.save("ls_count_Delta_multiparent.npy", ls_count_Delta)
         self.last_pop = population
         self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
         print()

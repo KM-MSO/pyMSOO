@@ -31,6 +31,13 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
 
     tasks = model.tasks 
 
+    if os.path.isfile(PATH): 
+        import datetime
+        now_time = datetime.datetime.now()
+        ls_now_time = [now_time.year, now_time.month, now_time.day, now_time.hour, now_time.minute]
+        str_now_time = "-".join([str(x) for x in ls_now_time])
+        PATH = PATH[:-4] + str("-") + str(str_now_time) + '.mso'
+
     if total_time is not None: 
         model.total_time = total_time 
 

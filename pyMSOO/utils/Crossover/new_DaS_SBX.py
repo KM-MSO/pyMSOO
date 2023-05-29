@@ -57,7 +57,7 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
 
     def __das(ind_ab, ind_ac, original_ind, dim_uss, pcd_ab, pcd_ac, idx_transfer_ab):
         if pcd_ac is not None: 
-            idx_transfer_ac = np.random.rand(dim_uss) < np.where(pcd_ac > 0.5, pcd_ac, 0)
+            idx_transfer_ac = np.random.rand(dim_uss) < np.where(pcd_ac > 0.0, pcd_ac, 0)
         else: 
             idx_transfer_ac = np.zeros(dim_uss, dtype= np.int64)
         priority_ab = np.zeros(dim_uss, dtype= np.int64) + 1 

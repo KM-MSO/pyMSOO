@@ -1,5 +1,5 @@
 from pyMSOO.MFEA.model import MFEA_base, SM_MFEA, LSA21
-from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition, SM_MFEA_Multiparent
+from pyMSOO.MFEA.competitionModel import SM_MFEA_Competition, SM_MFEA_Multiparent, MFEA_Multiparent
 from pyMSOO.utils.Crossover import *
 from pyMSOO.utils.Mutation import *
 from pyMSOO.utils.Selection import *
@@ -37,15 +37,15 @@ for i in ls_tasks:
     ls_IndClass.append(ic)
     name_benchmark.append(str(i))
 
-# cec17
-t, ic = CEC17_benchmark.get_10tasks_benchmark()
-path = './RESULTS/result/CEC17/SM_MFEA/'
+# # cec17
+# t, ic = CEC17_benchmark.get_10tasks_benchmark()
+# path = './RESULTS/result/CEC17/SM_MFEA/'
 
-model = SM_MFEA_Multiparent
-ls_benchmark = [t]
-ls_IndClass = [ic]
-name_benchmark = ["multiparent"]
+# ls_benchmark = [t]
+# ls_IndClass = [ic]
+# name_benchmark = ["multiparent"]
 
+model = MFEA_Multiparent
 print(name_benchmark)
 
 smpModel = MultiBenchmark(
@@ -59,6 +59,7 @@ smpModel.compile(
         crossover= SBX_Crossover(nc = 2),
         mutation= PolynomialMutation(nm = 5, pm=1),
         dimension_strategy= DaS_strategy(eta= 3),
+        multi_parent = MultiparentCrossover(nc= 2),
         # dimension_strategy = NoDaS(), 
         search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
         selection = ElitismSelection(random_percent= 0.0)
@@ -70,5 +71,5 @@ smpModel.fit(
 )
 a = smpModel.run(
     nb_run= 1,     
-    save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_SBX_230523_1400/'
+    save_path= './RESULTS/result/GECCO20/check/MFEA_multiparent/'
 )

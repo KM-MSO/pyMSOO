@@ -6,46 +6,38 @@ import random
 from ...utils.EA import *
 from ...utils import Crossover, Mutation, DimensionAwareStrategy, Selection
 from ...utils.Search.DifferentialEvolution.shade import * 
-from . import AbstractModel
+from ..model import AbstractModel
 from ...utils.numba_utils import numba_randomchoice_w_prob
 
 class model(AbstractModel.model):
-    class battle_smp:
-        def __init__(self, idx_host: int, nb_tasks: int, lr, mu=0.1) -> None:
-            assert idx_host < nb_tasks
-            self.idx_host = idx_host
-            self.nb_tasks = nb_tasks
-            self.lr = lr
-            self.mu = mu
+    class intra_inter_matrix: 
+        def __init__(self, lr, mu= 0.1) -> None:
+            self.lr = lr 
+            self.mu = mu 
+            self.crossover_rate = 0.5 
 
-            #value const for intra
-            self.lowerBound_smp = mu/(self.nb_tasks + 1)
+        def update_crossover_rate(self, delta_task, count_delta_tasks):
+            '''
+            '''
 
-            # smp without lowerbound
-            self.smp_wo_mu: np.ndarray = np.zeros((nb_tasks + 1, )) + (1 - self.mu)/(nb_tasks + 1)
-            self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
-
-            self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
-            
-        def get_smp(self) -> np.ndarray:
-            return np.copy(self.smp_vector)
+            if np.sum(delta_task) != 0: 
+                '''
+                delta_task : [intra, inter]
+                '''
+                new_crossover_rate = np.array(delta_task) / (np.array(count_delta_tasks) + 1e-50)
+                new_crossover_rate = new_crossover_rate / (np.sum(new_crossover_rate) + 1e-50)
+                new_crossover_rate = new_crossover_rate[0] # take only intra 
+                self.crossover_rate = self.crossover_rate * (1 - self.lr) + new_crossover_rate * self.lr 
+                if self.crossover_rate < self.mu: 
+                    self.crossover_rate = self.mu
+                if self.crossover_rate > 1 - self.mu: 
+                    self.crossover_rate = 1 - self.mu  
         
-        def update_SMP(self, Delta_task, count_Delta_tasks):
-            '''
-            Delta_task > 0 
-            '''
+        def get_crossover_rate(self):
+            return self.crossover_rate 
 
-            if np.sum(Delta_task) != 0:         
-                new_smp = np.array(Delta_task) / (np.array(count_Delta_tasks) + 1e-50)
-                new_smp = new_smp * (1 - self.mu) / (np.sum(new_smp) + 1e-50)
 
-                self.smp_wo_mu = self.smp_wo_mu * (1 - self.lr) + new_smp * self.lr
-                self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
-                
-                self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
-            return self.smp_vector
-    
-    def __init__(self, seed=None, percent_print=2) -> None:
+    def __init__(self, seed=None, percent_print=1) -> None:
         super().__init__(seed, percent_print)
         self.ls_attr_avg.append('history_smp')
 
@@ -54,10 +46,15 @@ class model(AbstractModel.model):
         tasks: List[AbstractTask], 
         crossover: Crossover.SBX_Crossover, 
         mutation: Mutation.PolynomialMutation, 
+        multi_parent: Crossover.MultiparentCrossover,
         dimension_strategy: DimensionAwareStrategy.AbstractDaS = DimensionAwareStrategy.NoDaS(),
         selection: Selection.AbstractSelection= Selection.ElitismSelection(), 
         *args, **kwargs):
         super().compile(IndClass, tasks, crossover, mutation, dimension_strategy, selection, *args, **kwargs)
+
+        self.multi_parent_crossover = multi_parent
+        self.multi_parent_crossover.getInforTasks(IndClass, tasks, self.seed)
+    
 
     def render_smp(self,  shape = None, title = None, figsize = None, dpi = 100, step = 1, re_fig = False, label_shape= None, label_loc= None):
         
@@ -109,12 +106,13 @@ class model(AbstractModel.model):
         if re_fig:
             return fig
 
+
     def fit(self, nb_generations: int, nb_inds_each_task: int, nb_inds_min = None,
         lr = 0.1, mu= 0.1,
         evaluate_initial_skillFactor = False,
         *args, **kwargs):
         super().fit(*args, **kwargs)
-        
+
         # nb_inds_min
         if nb_inds_min is not None:
             assert nb_inds_each_task >= nb_inds_min
@@ -134,38 +132,34 @@ class model(AbstractModel.model):
         )
 
         nb_inds_tasks = [nb_inds_each_task] * len(self.tasks)
+
         
         # SA params:
         MAXEVALS = nb_generations * nb_inds_each_task * len(self.tasks)
         eval_k = [0] * len(self.tasks)
         epoch = 0
 
-        '''
-        ------
-        per params
-        ------
-        '''
         # prob choose first parent
         p_choose_father = np.ones((len(self.tasks), ))/ len(self.tasks)
 
         # Initialize memory M_smp
-        M_smp = [self.battle_smp(i, len(self.tasks), lr, mu) for i in range(len(self.tasks))]
+        M_smp = [self.intra_inter_matrix(lr, mu) for i in range(len(self.tasks))]
 
         # save history
         self.history_cost.append([ind.fcost for ind in population.get_solves()])
-        self.history_smp.append([M_smp[i].get_smp() for i in range(len(self.tasks))])
+        self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
+
         epoch = 1
-        average_rate_success = []
-        ls_count_success = [] 
-        ls_count_Delta = []
+
+
 
         while sum(eval_k) <= MAXEVALS:
             turn_eval = 0
 
             # Delta epoch
-            Delta:List[List[float]] = np.zeros((len(self.tasks), len(self.tasks) + 1)).tolist()
-            count_Delta: List[List[float]] = np.zeros((len(self.tasks), len(self.tasks) + 1)).tolist()
-            count_success = np.zeros((len(self.tasks), len(self.tasks) + 1)).tolist() 
+            Delta:List[List[float]] = np.zeros((len(self.tasks), 2)).tolist()
+            count_Delta: List[List[float]] = np.zeros((len(self.tasks), 2)).tolist()
+            count_success = np.zeros((len(self.tasks), 2)).tolist() 
 
             # initial offspring_population of generation
             offsprings = Population(
@@ -179,7 +173,7 @@ class model(AbstractModel.model):
                 if sum(eval_k) >= epoch * nb_inds_each_task * len(self.tasks):
                     # save history
                     self.history_cost.append([ind.fcost for ind in population.get_solves()])
-                    self.history_smp.append([M_smp[i].get_smp() for i in range(len(self.tasks))])
+                    self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
 
                     self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
                     epoch += 1
@@ -187,60 +181,36 @@ class model(AbstractModel.model):
                 # choose subpop of father pa
                 skf_pa = numba_randomchoice_w_prob(p_choose_father)
 
-                # get smp 
-                smp = M_smp[skf_pa].get_smp()
+                inter = False 
+                oa, ob = None, None 
+                pa = population[skf_pa].__getRandomItems__()
+                if np.random.rand() < M_smp[skf_pa].get_crossover_rate(): 
+                    # TM-TODO intra 
+                    pa, pb = population[skf_pa].__getRandomItems__(size= 2, replace=False)
 
-                # choose subpop of mother pb
-                skf_pb = numba_randomchoice_w_prob(smp)
-
-                if skf_pb != len(self.tasks):
-                    if skf_pa == skf_pb:
-                        pa, pb = population[skf_pa].__getRandomItems__(size= 2, replace=False)
-                    else:
-                        pa = population[skf_pa].__getRandomItems__()
-                        pb = population[skf_pb].__getRandomItems__()
-
-                    if np.all(pa.genes == pb.genes):
-                        pb = population[skf_pb].__getWorstIndividual__
-                    
                     oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
-
-                    # dimension strategy
-                    oa = self.dimension_strategy(oa, pb.skill_factor, pa)
-                    ob = self.dimension_strategy(ob, pb.skill_factor, pb if skf_pa == skf_pb else pa)
-
-                else:
-                    pa, pb = population.__getIndsTask__(skf_pa, type= 'random', size= 2)
-
-                    oa = self.mutation(pa, return_newInd= True)
-                    oa.skill_factor = skf_pa
-
-                    ob = self.mutation(pb, return_newInd= True)
-                    ob.skill_factor = skf_pa
-
-                
+                    pass 
+                else: # inter
+                    # TM-TODO 
+                    oa, ob = self.multi_parent_crossover(pa, population)
+                    inter= True
+                    pass 
+                inter = int(inter)
                 # add oa, ob to offsprings population and eval fcost
                 offsprings.__addIndividual__(oa)
                 offsprings.__addIndividual__(ob)
 
-                count_Delta[skf_pa][skf_pb] += 2
+                count_Delta[skf_pa][int(inter)] += 2
                 eval_k[skf_pa] += 2
-                turn_eval += 2
+                turn_eval += 2    
 
                 # Calculate the maximum improvement percetage
                 Delta1 = (pa.fcost - oa.fcost) / (pa.fcost ** 2 + 1e-50)
                 Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50)
 
-                Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
-                Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
-                
-                if Delta1 > 0: count_success[skf_pa][skf_pb] += 1 
-                if Delta2 > 0: count_success[skf_pa][skf_pb] += 1 
-            
-            average_rate_success.append(np.array(count_success) / (np.array(count_Delta) + 0.00001)) 
-            ls_count_success.append(count_success) 
-            ls_count_Delta.append(count_Delta)
-    
+                Delta[skf_pa][inter] += max([Delta1, 0])**2
+                Delta[skf_pa][inter] += max([Delta2, 0])**2
+
 
             # merge
             population = population + offsprings
@@ -256,20 +226,10 @@ class model(AbstractModel.model):
             self.crossover.update(population = population)
             self.mutation.update(population = population)
             self.dimension_strategy.update(population = population)
+            self.multi_parent_crossover.update(population= population)
 
             # update smp
             for skf in range(len(self.tasks)):
-                M_smp[skf].update_SMP(Delta[skf], count_Delta[skf])
+                M_smp[skf].update_crossover_rate(Delta[skf], count_Delta[skf])
 
-        #solve
-        np.save("avarage_success.npy", average_rate_success) 
-        np.save("ls_count_success.npy", ls_count_success)
-        np.save("ls_count_Delta.npy", ls_count_Delta)
-        self.last_pop = population
-        self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
-        print()
-        # print(p_choose_father)
-        # print(eval_k)
-        print('END!')
-        return self.last_pop.get_solves()
     

@@ -1,6 +1,7 @@
 *.mso
 *.DS_Store
 test*.py
+*.npy 
 .vscode/
 # Byte-compiled / optimized / DLL files
 __pycache__/
