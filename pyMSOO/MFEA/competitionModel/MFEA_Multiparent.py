@@ -32,6 +32,8 @@ class model(AbstractModel.model):
                     self.crossover_rate = self.mu
                 if self.crossover_rate > 1 - self.mu: 
                     self.crossover_rate = 1 - self.mu  
+            else: 
+                self.crossover_rate = self.crossover_rate * ( 1- self.lr) + 0.5 * self.lr 
         
         def get_crossover_rate(self):
             return self.crossover_rate 
@@ -150,7 +152,9 @@ class model(AbstractModel.model):
         self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
 
         epoch = 1
-
+        average_rate_success = []
+        ls_count_success = [] 
+        ls_count_Delta = []
 
 
         while sum(eval_k) <= MAXEVALS:
@@ -170,10 +174,10 @@ class model(AbstractModel.model):
             )
 
             while turn_eval < sum(nb_inds_tasks):
+                self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
                 if sum(eval_k) >= epoch * nb_inds_each_task * len(self.tasks):
                     # save history
                     self.history_cost.append([ind.fcost for ind in population.get_solves()])
-                    self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
 
                     self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
                     epoch += 1
@@ -211,6 +215,13 @@ class model(AbstractModel.model):
                 Delta[skf_pa][inter] += max([Delta1, 0])**2
                 Delta[skf_pa][inter] += max([Delta2, 0])**2
 
+                if Delta1 > 0: count_success[skf_pa][inter] += 1 
+                if Delta2 > 0: count_success[skf_pa][inter] += 1 
+            average_rate_success.append(np.array(count_success) / (np.array(count_Delta) + 0.00001)) 
+            ls_count_success.append(count_success) 
+            ls_count_Delta.append(count_Delta)
+    
+
 
             # merge
             population = population + offsprings
@@ -231,5 +242,9 @@ class model(AbstractModel.model):
             # update smp
             for skf in range(len(self.tasks)):
                 M_smp[skf].update_crossover_rate(Delta[skf], count_Delta[skf])
+        
+        np.save("avarage_success.npy", average_rate_success) 
+        np.save("ls_count_success.npy", ls_count_success)
+        np.save("ls_count_Delta.npy", ls_count_Delta)
 
     

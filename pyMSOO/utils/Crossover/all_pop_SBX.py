@@ -40,8 +40,16 @@ class MultiparentCrossover(AbstractCrossover):
             for j in range(nb_tasks):
                 kl = np.log((std[i] + 1e-50)/(std[j] + 1e-50)) + (std[j] ** 2 + (mean[j] - mean[i]) ** 2)/(2 * std[i] ** 2 + 1e-50) - 1/2
                 prob[i][j] = np.exp(-kl * u)
-
         return np.clip(prob, 1/dim_uss, 1)
+    
+    @staticmethod
+    def updateProb(prob, u, dim_uss, nb_tasks, mean, std):
+        for i in range(nb_tasks):
+            for j in range(nb_tasks):
+                kl = np.log((std[i] + 1e-50)/(std[j] + 1e-50)) + (std[j] ** 2 + (mean[j] - mean[i]) ** 2)/(2 * std[i] ** 2 + 1e-50) - 1/2
+                prob[i][j] = np.exp(-kl * u)
+        return np.clip(prob, 1/dim_uss, 1)
+    
 
     def update(self, population: Population, **kwargs) -> None:
         mean = np.zeros((self.nb_tasks, self.dim_uss))
@@ -98,7 +106,7 @@ class MultiparentCrossover(AbstractCrossover):
             pb_genes.append(population[id_skf][ls_idx_pb[id_skf]][idx_dim])
         pb_genes = np.array(pb_genes)
 
-        gene_oa, gene_ob = self._crossover(pa.genes, pb_genes, swap= False, dim_uss= self.dim_uss, nc= self.nc)
+        gene_oa, gene_ob = self._crossover(pa.genes, pb_genes, swap= True, dim_uss= self.dim_uss, nc= self.nc)
 
 
 
@@ -124,4 +132,4 @@ class MultiparentCrossover(AbstractCrossover):
         return oa, ob 
         
 
-        pass 
+        pass
