@@ -38,8 +38,8 @@ for i in ls_tasks:
     name_benchmark.append(str(i))
 
 # cec17
-# t, ic = CEC17_benchmark.get_10tasks_benchmark()
-t, ic =CEC17_benchmark.get_10_tasks_benchmark_ver_complicate()
+t, ic = CEC17_benchmark.get_10tasks_benchmark()
+# t, ic =CEC17_benchmark.get_10_tasks_benchmark_ver_complicate()
 path = './RESULTS/result/CEC17/SM_MFEA/'
 
 ls_benchmark = [t]
@@ -60,14 +60,14 @@ smpModel.compile(
         crossover= SBX_Crossover(nc = 2),
         mutation= PolynomialMutation(nm = 5, pm=1),
         dimension_strategy= DaS_strategy(eta= 1),
-        multi_parent = MultiparentCrossover(nc= 2, eta= 1),
+        multi_parent = MultiparentCrossover(nc= 2, eta= 0.5),
         # dimension_strategy = NoDaS(), 
         search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
         selection = ElitismSelection(random_percent= 0.0)
 )
 smpModel.fit(
-        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 15,
-        lr = 0.6 ,mu= 0.1,
+        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
+        lr = 0.5 ,mu= 0.1,
         evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(

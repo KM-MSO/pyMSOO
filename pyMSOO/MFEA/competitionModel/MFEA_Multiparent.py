@@ -14,7 +14,7 @@ class model(AbstractModel.model):
         def __init__(self, lr, mu= 0.1) -> None:
             self.lr = lr 
             self.mu = mu 
-            self.crossover_rate = 0.5 
+            self.crossover_rate = 0.1
 
         def update_crossover_rate(self, delta_task, count_delta_tasks):
             '''
@@ -173,8 +173,8 @@ class model(AbstractModel.model):
                 list_tasks= self.tasks,
             )
 
+            self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
             while turn_eval < sum(nb_inds_tasks):
-                self.history_smp.append([M_smp[i].get_crossover_rate() for i in range(len(self.tasks))])
                 if sum(eval_k) >= epoch * nb_inds_each_task * len(self.tasks):
                     # save history
                     self.history_cost.append([ind.fcost for ind in population.get_solves()])

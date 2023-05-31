@@ -25,23 +25,23 @@ import pandas as pd
 import numpy as np 
 import os 
 
-ls_benchmark = []
-ls_IndClass = []
-ls_tasks = [2]
-name_benchmark = [] 
-print(ls_tasks)
-for i in ls_tasks:
-    # t, ic = WCCI22_benchmark.get_complex_benchmark(i)
-    t, ic = WCCI22_benchmark.get_50tasks_benchmark(i)
-    ls_benchmark.append(t)
-    ls_IndClass.append(ic)
-    name_benchmark.append(str(i))
+# ls_benchmark = []
+# ls_IndClass = []
+# ls_tasks = [2]
+# name_benchmark = [] 
+# print(ls_tasks)
+# for i in ls_tasks:
+#     # t, ic = WCCI22_benchmark.get_complex_benchmark(i)
+#     t, ic = WCCI22_benchmark.get_50tasks_benchmark(i)
+#     ls_benchmark.append(t)
+#     ls_IndClass.append(ic)
+#     name_benchmark.append(str(i))
 
 # cec17
 t, ic = CEC17_benchmark.get_10tasks_benchmark()
 path = './RESULTS/result/CEC17/SM_MFEA/'
 
-model = SM_MFEA_Multiparent
+model = SM_MFEA
 ls_benchmark = [t]
 ls_IndClass = [ic]
 name_benchmark = ["multiparent"]
