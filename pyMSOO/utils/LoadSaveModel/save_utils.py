@@ -4,11 +4,11 @@ import os
 import numpy as np 
 import pandas as pd 
 
-from .load_utils import loadModel, loadModelFromTxt
+from pyMSOO.utils.LoadSaveModel.load_utils import loadModel, loadModelFromTxt
 from pyMSOO.MFEA.model import AbstractModel 
 from pyMSOO.MFEA.benchmark.continous import * 
 
-def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
+def saveModel(model, PATH: str, remove_tasks=True, total_time = None, overwrite = False):
     '''
     `.mso`
     '''
@@ -31,7 +31,7 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
 
     tasks = model.tasks 
 
-    if os.path.isfile(PATH): 
+    if os.path.isfile(PATH) and not overwrite: 
         import datetime
         now_time = datetime.datetime.now()
         ls_now_time = [now_time.year, now_time.month, now_time.day, now_time.hour, now_time.minute]
@@ -73,7 +73,8 @@ def saveModel(model, PATH: str, remove_tasks=True, total_time = None ):
         pickle.dump(model, f)
         f.close()
 
-    except:
+    except Exception as e:
+        print(str(e))
         cls = model.__class__
         model.__class__ = cls.__class__(cls.__name__, (cls, model.model), {})
 

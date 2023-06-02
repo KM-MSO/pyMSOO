@@ -33,7 +33,8 @@ class model(AbstractModel.model):
                 if self.crossover_rate > 1 - self.mu: 
                     self.crossover_rate = 1 - self.mu  
             else: 
-                self.crossover_rate = self.crossover_rate * ( 1- self.lr) + 0.5 * self.lr 
+                self.crossover_rate = self.crossover_rate * (1- self.lr) + 0.5 * self.lr 
+            self.crossover_rate = np.clip(self.crossover_rate, self.mu, 1-self.mu)
         
         def get_crossover_rate(self):
             return self.crossover_rate 
@@ -112,6 +113,7 @@ class model(AbstractModel.model):
     def fit(self, nb_generations: int, nb_inds_each_task: int, nb_inds_min = None,
         lr = 0.1, mu= 0.1,
         evaluate_initial_skillFactor = False,
+        stop_early = 500, 
         *args, **kwargs):
         super().fit(*args, **kwargs)
 
@@ -181,6 +183,8 @@ class model(AbstractModel.model):
 
                     self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
                     epoch += 1
+                    if stop_early != -1 and epoch > stop_early: 
+                        return 
 
                 # choose subpop of father pa
                 skf_pa = numba_randomchoice_w_prob(p_choose_father)

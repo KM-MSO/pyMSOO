@@ -69,6 +69,7 @@ class MultiparentCrossover(AbstractCrossover):
                 # largest_2nd_element = np.partition(self.prob[idx_task, :, dim].flatten(), -1)[-1]
                 largest_2nd_element = 0
                 prob_i_dim = np.where(self.prob[idx_task, :, dim] < largest_2nd_element, 0, self.prob[idx_task, :, dim])
+                prob_i_dim = prob_i_dim ** 2 
                 self.prob_in_dim[idx_task][dim] = prob_i_dim / np.sum(prob_i_dim) 
                 self.prob[idx_task][idx_task][dim] = tmp 
 
@@ -104,14 +105,20 @@ class MultiparentCrossover(AbstractCrossover):
             prob_cross.append(self.prob[pa.skill_factor][idx_skf][idx_dim])
 
         idx_transfer = np.random.rand(self.dim_uss) < np.array(prob_cross) 
-        ls_idx_pb = np.random.choice(np.arange(len(population[pa.skill_factor])), size= self.dim_uss, replace= True) 
+        # ls_idx_pb = np.random.choice(np.arange(len(population[pa.skill_factor])), size= self.dim_uss, replace= True) 
+
+        # pb_genes = [] 
+        # for idx_dim, id_skf in enumerate(ls_id_skf_cross):
+        #     pb_genes.append(population[id_skf][ls_idx_pb[id_skf]][idx_dim])
 
         pb_genes = [] 
-        for idx_dim, id_skf in enumerate(ls_id_skf_cross):
-            pb_genes.append(population[id_skf][ls_idx_pb[id_skf]][idx_dim])
+        
+        for dim in range(self.dim_uss): 
+            pb_genes.append(population.__getIndsTask__(ls_id_skf_cross[dim], p_ontop= 0.5)[dim])
+
         pb_genes = np.array(pb_genes)
 
-        gene_oa, gene_ob = self._crossover(pa.genes, pb_genes, swap= False, dim_uss= self.dim_uss, nc= self.nc)
+        gene_oa, gene_ob = self._crossover(pa.genes, pb_genes, swap= True, dim_uss= self.dim_uss, nc= self.nc)
 
 
 

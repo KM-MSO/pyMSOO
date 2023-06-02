@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [2]
+ls_tasks = [1]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:
@@ -60,17 +60,18 @@ smpModel.compile(
         crossover= SBX_Crossover(nc = 2),
         mutation= PolynomialMutation(nm = 5, pm=1),
         dimension_strategy= DaS_strategy(eta= 1),
-        multi_parent = MultiparentCrossover(nc= 2, eta= 0.5),
+        multi_parent = MultiparentCrossover(nc= 2, eta= 1.5),
         # dimension_strategy = NoDaS(), 
         search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
         selection = ElitismSelection(random_percent= 0.0)
 )
 smpModel.fit(
-        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
-        lr = 0.5 ,mu= 0.1,
-        evaluate_initial_skillFactor= True  
+        nb_generations= 500, nb_inds_each_task= 200, nb_inds_min= 40,
+        lr = 0.4 ,mu= 0.1,
+        evaluate_initial_skillFactor= True , 
+        stop_early= -1, 
 )
 a = smpModel.run(
     nb_run= 1,     
-    save_path= './RESULTS/result/GECCO20/check/MFEA_multiparent/'
+    save_path= './RESULTS/result/GECCO20/check/MFEA_multiparent/020623_multiprocess/'
 )
