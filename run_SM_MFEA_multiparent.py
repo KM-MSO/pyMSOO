@@ -43,9 +43,9 @@ path = './RESULTS/result/CEC17/SM_MFEA/'
 
 ls_benchmark = [t]
 ls_IndClass = [ic]
-name_benchmark = ["sm_mfea"]
+name_benchmark = ["multiparent"]
 
-model = SM_MFEA
+model = SM_MFEA_Multiparent
 print(name_benchmark)
 
 smpModel = MultiBenchmark(
@@ -56,19 +56,19 @@ smpModel = MultiBenchmark(
 )
 
 smpModel.compile( 
-    crossover= SBX_Crossover(nc = 2),
-    mutation= PolynomialMutation(nm = 5, pm=1),
-    dimension_strategy= DaS_strategy(eta= 3),
-    # dimension_strategy = NoDaS(), 
-    search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
-    selection = ElitismSelection(random_percent= 0.0)
+        crossover= SBX_Crossover(nc = 2),
+        mutation= PolynomialMutation(nm = 5, pm=1),
+        dimension_strategy= DaS_strategy(eta= 3),
+        # dimension_strategy = NoDaS(), 
+        search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
+        selection = ElitismSelection(random_percent= 0.0)
 )
 smpModel.fit(
-    nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
-    lr = 0.1 ,mu= 0.1,
-    evaluate_initial_skillFactor= True  
+        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
+        lr = 0.1 ,mu= 0.1,
+        evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run= 5,     
-    save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_050623/'
+    nb_run= 3,     
+    save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_multiparent_050623/'
 )

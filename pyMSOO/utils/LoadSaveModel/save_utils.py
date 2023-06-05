@@ -8,7 +8,7 @@ from pyMSOO.utils.LoadSaveModel.load_utils import loadModel, loadModelFromTxt
 from pyMSOO.MFEA.model import AbstractModel 
 from pyMSOO.MFEA.benchmark.continous import * 
 
-def saveModel(model, PATH: str, remove_tasks=True, total_time = None, overwrite = False):
+def saveModel(model, PATH: str, remove_tasks=True, total_time = None, overwrite = True):
     '''
     `.mso`
     '''

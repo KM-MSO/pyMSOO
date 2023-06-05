@@ -181,7 +181,7 @@ class CompareModel():
                 path_algo = os.path.join(path, list_algo[idx_algo])
                 # count_benchmark = 0
                 print(path_algo)
-                for benchmark_mso in os.listdir(path_algo):
+                for benchmark_mso in sorted(os.listdir(path_algo)):
                     count_benchmark = benchmark_mso.split(".")[0]
                     count_benchmark = count_benchmark.split("_")[-1]
                     count_benchmark = int(count_benchmark) - 1

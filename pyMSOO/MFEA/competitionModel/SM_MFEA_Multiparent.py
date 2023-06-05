@@ -43,6 +43,15 @@ class model(AbstractModel.model):
                 self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
                 
                 self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
+            else: 
+                # TM-FIXME : if not improve -> smp convergence to 1 / nb_tasks 
+                new_smp = np.ones_like(Delta_task)
+                new_smp = new_smp * (1 - self.mu) / (np.sum(new_smp) + 1e-50)
+
+                self.smp_wo_mu = self.smp_wo_mu * (1 - self.lr) + new_smp * self.lr
+                self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
+                
+                self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
             return self.smp_vector
     
     def __init__(self, seed=None, percent_print=2) -> None:
@@ -213,7 +222,7 @@ class model(AbstractModel.model):
                         oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
                     else: 
 
-                        oa, ob, skf_pc = self.multi_parent_crossover(pa, skf_pb, population, self.dimension_strategy.prob[skf_pa])
+                        oa, ob = self.multi_parent_crossover(pa, skf_pb, population, self.dimension_strategy.prob[skf_pa])
 
                     # add oa, ob to offsprings population and eval fcost
                     offsprings.__addIndividual__(oa)
@@ -286,6 +295,7 @@ class model(AbstractModel.model):
             self.crossover.update(population = population)
             self.mutation.update(population = population)
             self.dimension_strategy.update(population = population)
+            self.multi_parent_crossover.update(population= population)
 
             # update smp
             for skf in range(len(self.tasks)):
