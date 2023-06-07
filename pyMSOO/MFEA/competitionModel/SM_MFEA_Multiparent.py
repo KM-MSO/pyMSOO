@@ -213,16 +213,17 @@ class model(AbstractModel.model):
                     else:
                         pa = population[skf_pa].__getRandomItems__()
                         pb = population[skf_pb].__getRandomItems__()
-
+                        pass
                     if np.all(pa.genes == pb.genes):
                         pb = population[skf_pb].__getWorstIndividual__
+
                     
                     # TM-ANCHOR: inter-crossover: multiparent
-                    if skf_pa == skf_pb: 
-                        oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
-                    else: 
-
-                        oa, ob = self.multi_parent_crossover(pa, skf_pb, population, self.dimension_strategy.prob[skf_pa])
+                    # TM-FIXME: 
+                    # if skf_pa == skf_pb: 
+                    #     oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
+                    # else: 
+                    oa, ob = self.multi_parent_crossover(pa, skf_pb, population, smp)
 
                     # add oa, ob to offsprings population and eval fcost
                     offsprings.__addIndividual__(oa)
@@ -236,6 +237,7 @@ class model(AbstractModel.model):
                     Delta1 = (pa.fcost - oa.fcost) / (pa.fcost ** 2 + 1e-50)
                     Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50)
 
+                    
                     Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
                     Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
 
@@ -294,7 +296,7 @@ class model(AbstractModel.model):
             # update operators
             self.crossover.update(population = population)
             self.mutation.update(population = population)
-            self.dimension_strategy.update(population = population)
+            # self.dimension_strategy.update(population = population)
             self.multi_parent_crossover.update(population= population)
 
             # update smp

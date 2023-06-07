@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [10]
+ls_tasks = [3]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:
@@ -69,6 +69,6 @@ smpModel.fit(
     evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run= 5,     
+    nb_run= 30,     
     save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_050623/'
 )

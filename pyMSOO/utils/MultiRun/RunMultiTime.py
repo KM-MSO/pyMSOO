@@ -205,10 +205,10 @@ class MultiTimeModel:
 
             except KeyboardInterrupt as e:
                 self.status = 'Running'
-                self.set_attribute()
+                # self.set_attribute()
 
-                self.__class__ = MultiTimeModel
-                save_result = saveModel(self, save_path)
+                # self.__class__ = MultiTimeModel
+                # save_result = saveModel(self, save_path)
                 print('\n\nKeyboardInterrupt: ' +
                       save_result + ' model, model is not Done')
                 traceback.print_exc()

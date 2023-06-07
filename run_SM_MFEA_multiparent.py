@@ -39,11 +39,12 @@ for i in ls_tasks:
 
 # cec17
 t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_complicate()
+# t, ic = CEC17_benchmark.get_10tasks_benchmark()
 path = './RESULTS/result/CEC17/SM_MFEA/'
 
 ls_benchmark = [t]
 ls_IndClass = [ic]
-name_benchmark = ["multiparent"]
+name_benchmark = ["multiparent_eta_15e-1"]
 
 model = SM_MFEA_Multiparent
 print(name_benchmark)
@@ -69,6 +70,6 @@ smpModel.fit(
         evaluate_initial_skillFactor= True  
 )
 a = smpModel.run(
-    nb_run= 3,     
+    nb_run= 1,     
     save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_multiparent_050623/'
 )

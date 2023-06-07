@@ -170,7 +170,7 @@ class CompareModel():
         else:
             list_algo = os.listdir(path)
             print(list_algo)
-            idx_main_algo = input("Type index main algo")
+            idx_main_algo = input("Type index main algo: ")
             idx_main_algo = int(idx_main_algo) 
             benchmarks = [name_ben.split(
                 "_")[-1].split(".")[0] for name_ben in os.listdir(os.path.join(path, list_algo[0]))]
