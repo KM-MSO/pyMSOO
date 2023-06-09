@@ -25,8 +25,6 @@ class AbstractFunc(AbstractTask):
         self.shift = np.array([[i] * int(dim / len(tmp))
                               for i in tmp]).reshape(-1, )
 
-        self.global_optimal = self.encode(
-            self.inv_rotation_matrix @ self.global_optimal + self.shift)
 
         if bound is not None:
             self.limited_space = True
@@ -37,6 +35,8 @@ class AbstractFunc(AbstractTask):
         else:
             self.name = self.__class__.__name__ + ': R^' + str(dim)
 
+        self.global_optimal = self.encode(
+            self.inv_rotation_matrix @ self.global_optimal + self.shift)
     def __eq__(self, other: object) -> bool:
         if self.__repr__() == other.__repr__():
             return True

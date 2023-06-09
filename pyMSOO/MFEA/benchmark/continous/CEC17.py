@@ -11,7 +11,22 @@ class CEC17_benchmark():
     dim = 50
     task_size = 2
 
-    def get_10_tasks_benchmark_ver_complicate(fix= False) -> Tuple[List[AbstractFunc], Type[Individual_func]]: 
+    def get_10_tasks_benchmark_ver_quite_complicate(fix= False) -> Tuple[List[AbstractFunc], Type[Individual_func]]: 
+        tasks = [
+        Sphere(     50,shift= [-80.0,0.0,-80.0,0.0,-80.0,0.0,-80.0,0.0,-80.0,0.0] * 5,    bound= [-100, 100]),   # 0
+        Sphere(     50,shift= [80.0,-80.0,80.0,-80.0,80.0,-80.0,80.0,-80.0,80.0,-80.0] * 5,   bound= [-100, 100]),  # 80
+        Sphere(     50,shift= [40.0,80.0,40.0,80.0,40.0,80.0,40.0,80.0,40.0,80.0] * 5,  bound= [-100, 100]), # -80
+        Weierstrass(50,shift= np.array([0.3,-0.3,0.3,-0.3,0.3,-0.3,0.3,-0.3,0.3,-0.3] * 5), bound= [-0.5, 0.5]), # -0.4
+        Rosenbrock( 50,shift= [-41.0,-1.0,-41.0,-1.0,-41.0,-41.0,39.0,-41.0,39.0,-41.0] * 5,   bound= [-50, 50]),# 0
+        Ackley(     50,shift= [40.0,-40.0,40.0,-40.0,40.0,0.0,-40.0,0.0,-40.0,0.0] * 5,   bound= [-50, 50]),    # 40
+        Weierstrass(50,shift= [0.2,-0.3,-0.4,0.4,0.4,0.0,0.2,-0.4,0.3,-0.4] * 5, bound= [-0.5, 0.5]), # -0.4
+        Schwefel(   50,shift= 0,    bound= [-500, 500], fixed = fix), # 420.9687
+        Griewank(   50,shift= [60.0,0.0,80.0,-60.0,40.0,-60.0,60.0,80.0,-80.0,-80.0] * 5, bound= [-100, 100]), # -80, 80
+        Rastrigin(  50,shift= [-40.0,-40.0,20.0,0.0,30.0,-30.0,20.0,-40.0,20.0,0.0] * 5, bound= [-50, 50]),# -40, 40
+        ]
+        return tasks, Individual_func
+    
+    def get_10_tasks_benchmark_ver_max_complicate(fix= False) -> Tuple[List[AbstractFunc], Type[Individual_func]]: 
         tasks = [
         Sphere(     50,shift= [-80.0,0.0,-80.0,0.0,-80.0,0.0,-80.0,0.0,-80.0,0.0] * 5,    bound= [-100, 100]),   # 0
         Sphere(     50,shift= [80.0,-80.0,80.0,-80.0,80.0,-80.0,80.0,-80.0,80.0,-80.0] * 5,   bound= [-100, 100]),  # 80

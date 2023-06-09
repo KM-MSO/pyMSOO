@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [10]
+ls_tasks = [2]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:
@@ -37,14 +37,14 @@ for i in ls_tasks:
     ls_IndClass.append(ic)
     name_benchmark.append(str(i))
 
-# cec17
-t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_complicate()
-# t, ic = CEC17_benchmark.get_10tasks_benchmark()
-path = './RESULTS/result/CEC17/SM_MFEA/'
+# # cec17
+# t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_quite_complicate()
+# # t, ic = CEC17_benchmark.get_10tasks_benchmark()
+# path = './RESULTS/result/CEC17/SM_MFEA/'
 
-ls_benchmark = [t]
-ls_IndClass = [ic]
-name_benchmark = ["multiparent_eta_15e-1"]
+# ls_benchmark = [t]
+# ls_IndClass = [ic]
+# name_benchmark = ["multiparent_eta_15e-1"]
 
 model = SM_MFEA_Multiparent
 print(name_benchmark)
@@ -67,7 +67,8 @@ smpModel.compile(
 smpModel.fit(
         nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 20,
         lr = 0.1 ,mu= 0.1,
-        evaluate_initial_skillFactor= True  
+        evaluate_initial_skillFactor= True, 
+        stop_early = -1,  
 )
 a = smpModel.run(
     nb_run= 1,     

@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [3]
+ls_tasks = [2]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:
@@ -37,13 +37,13 @@ for i in ls_tasks:
     ls_IndClass.append(ic)
     name_benchmark.append(str(i))
 
-# cec17
-t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_complicate()
-path = './RESULTS/result/CEC17/SM_MFEA/'
+# # cec17
+# t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_quite_complicate()
+# path = './RESULTS/result/CEC17/SM_MFEA/'
 
-ls_benchmark = [t]
-ls_IndClass = [ic]
-name_benchmark = ["sm_mfea"]
+# ls_benchmark = [t]
+# ls_IndClass = [ic]
+# name_benchmark = ["sm_mfea"]
 
 model = SM_MFEA
 print(name_benchmark)

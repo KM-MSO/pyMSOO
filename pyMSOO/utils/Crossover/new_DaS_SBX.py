@@ -35,7 +35,7 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
                 # kl = np.log((std[i] + 1e-50)/(std[j] + 1e-50)) + (std[j] ** 2 + (mean[j] - mean[i]) ** 2)/(2 * std[i] ** 2 + 1e-50) - 1/2
                 prob[i][j] = np.exp(-kl * u)
 
-        return np.clip(prob, 1/dim_uss, 1)
+        return np.clip(prob, 1/(dim_uss*2), 1)
 
     def update(self, population: Population, **kwargs) -> None:
         mean = np.zeros((self.nb_tasks, self.dim_uss))
@@ -75,20 +75,29 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         Return id task transferred knowledge 
 
         '''
+        if len(transfered_dims) == self.dim_uss:
+            transfered_dims = [] 
+        if len(transfered_task) == pcd_vector_skfpa.shape[0]: 
+            transfered_task = [transfered_task[1]]
         pcd_vector_skfpa[:, transfered_dims] = 0  # shape: (K, D)
         pcd_vector_skfpa = np.sum(pcd_vector_skfpa, axis=1)
         pcd_vector_skfpa[transfered_task] = 0
         if smp is not None: 
             pcd_vector_skfpa *= smp[:len(pcd_vector_skfpa)]
+        pcd_vector_skfpa = pcd_vector_skfpa ** 2 
+        assert np.all(pcd_vector_skfpa) != np.nan
         pcd_vector_skfpa = pcd_vector_skfpa / np.sum(pcd_vector_skfpa)
-
         return numba_randomchoice_w_prob(pcd_vector_skfpa)
 
+
+        # smp = smp[:len(pcd_vector_skfpa)]
+        # smp /= np.sum(smp)
+        # return numba_randomchoice_w_prob(smp)
         # return numba_randomchoice_w_prob(smp_vector)
     
 
-    # @staticmethod
-    # @jit(nopython=True)
+    @staticmethod
+    @jit(nopython=True)
     def _crossover(gene_pa, gene_pb, conf_thres, dim_uss, nc, pcd, gene_p_of_oa, gene_p_of_ob, 
                 #    transfered_dims, 
                    thresh_pcd_transfer=0, must_transfer=True, swap = False):
@@ -138,12 +147,15 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
                                                                     pcd=self.prob[pa.skill_factor][pb.skill_factor], 
                                                                     gene_p_of_oa=pa.genes,
                                                                     gene_p_of_ob=pa.genes,
-                                                                    swap= pa.skill_factor == skf_pb
+                                                                    swap= pa.skill_factor == skf_pb, 
+                                                                    must_transfer= False,
                                                                     #    transfered_dims= transfered_dims if len(transfered_dims) > 0 else None
                                                                     )
         idx_crossover = np.where(idx_crossover)[0]
         transfered_dims += idx_crossover.tolist()
-        for i in range(self.number_parent - 1):
+        count_crossover = 1 if len(transfered_dims) > 0 else 0 
+
+        while count_crossover < self.number_parent:
             if len(transfered_dims) == self.dim_uss:
                 break
             skf_pc = self.choose_task_transfer(
@@ -164,13 +176,16 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
                 gene_p_of_oa=pa.genes,
                 gene_p_of_ob=pa.genes,
                 # transfered_dims= transfered_dims if len(transfered_dims) > 0 else None,
-                thresh_pcd_transfer=0.0,
+                thresh_pcd_transfer=0.5,
                 must_transfer=False
             )
             idx_crossover[transfered_dims] = 0 
             idx_crossover = np.where(idx_crossover)[0]
             gene_oa[idx_crossover] = gene_oc1[idx_crossover]
             gene_ob[idx_crossover] = gene_oc2[idx_crossover]
+
+            if len(idx_crossover) > 0: 
+                count_crossover += 1 
 
             # gene_oa, _, idx_crossover = self.__class__._crossover(
             #     gene_pa = gene_oa,
@@ -208,6 +223,7 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
 
             transfered_dims += idx_crossover.tolist()
             transferred_tasks.append(skf_pc)
+
 
         oa = self.IndClass(gene_oa)
         ob = self.IndClass(gene_ob)

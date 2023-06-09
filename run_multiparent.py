@@ -60,7 +60,7 @@ smpModel.compile(
         crossover= SBX_Crossover(nc = 2),
         mutation= PolynomialMutation(nm = 5, pm=1),
         dimension_strategy= DaS_strategy(eta= 1),
-        multi_parent = MultiparentCrossover(nc= 2, eta= 1.5),
+        multi_parent = MultiparentCrossover(nc= 2, eta= 2.5),
         # dimension_strategy = NoDaS(), 
         search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
         selection = ElitismSelection(random_percent= 0.0)

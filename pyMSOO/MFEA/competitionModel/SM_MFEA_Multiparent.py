@@ -124,7 +124,7 @@ class model(AbstractModel.model):
 
     def fit(self, nb_generations: int, nb_inds_each_task: int, nb_inds_min = None,
         lr = 0.1, mu= 0.1,
-        evaluate_initial_skillFactor = False,
+        evaluate_initial_skillFactor = False, stop_early = -1,
         *args, **kwargs):
         super().fit(*args, **kwargs)
         
@@ -197,6 +197,8 @@ class model(AbstractModel.model):
 
                     self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
                     epoch += 1
+                    if stop_early != -1 and epoch > stop_early: 
+                        return 
 
                 # choose subpop of father pa
                 skf_pa = numba_randomchoice_w_prob(p_choose_father)
@@ -220,10 +222,10 @@ class model(AbstractModel.model):
                     
                     # TM-ANCHOR: inter-crossover: multiparent
                     # TM-FIXME: 
-                    # if skf_pa == skf_pb: 
-                    #     oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
-                    # else: 
-                    oa, ob = self.multi_parent_crossover(pa, skf_pb, population, smp)
+                    if skf_pa == skf_pb: 
+                        oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
+                    else: 
+                        oa, ob = self.multi_parent_crossover(pa, skf_pb, population, smp)
 
                     # add oa, ob to offsprings population and eval fcost
                     offsprings.__addIndividual__(oa)
@@ -237,6 +239,9 @@ class model(AbstractModel.model):
                     Delta1 = (pa.fcost - oa.fcost) / (pa.fcost ** 2 + 1e-50)
                     Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50)
 
+                    if Delta1 < 1e-7: Delta1 = 0 
+                    if Delta2 < 1e-7: Delta2 = 0  
+                    
                     
                     Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
                     Delta[skf_pa][skf_pb] += max([Delta2, 0])**2
