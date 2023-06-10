@@ -43,15 +43,15 @@ class model(AbstractModel.model):
                 self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
                 
                 self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
-            else: 
-                # TM-FIXME : if not improve -> smp convergence to 1 / nb_tasks 
-                new_smp = np.ones_like(Delta_task)
-                new_smp = new_smp * (1 - self.mu) / (np.sum(new_smp) + 1e-50)
+            # else: 
+            #     # TM-FIXME : if not improve -> smp convergence to 1 / nb_tasks 
+            #     new_smp = np.ones_like(Delta_task)
+            #     new_smp = new_smp * (1 - self.mu) / (np.sum(new_smp) + 1e-50)
 
-                self.smp_wo_mu = self.smp_wo_mu * (1 - self.lr) + new_smp * self.lr
-                self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
+            #     self.smp_wo_mu = self.smp_wo_mu * (1 - self.lr/10) + new_smp * self.lr/10
+            #     self.smp_wo_mu[self.idx_host] += (1 - self.mu) - np.sum(self.smp_wo_mu)
                 
-                self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
+            #     self.smp_vector = self.smp_wo_mu + self.lowerBound_smp
             return self.smp_vector
     
     def __init__(self, seed=None, percent_print=2) -> None:
@@ -212,12 +212,12 @@ class model(AbstractModel.model):
                 if skf_pb != len(self.tasks):
                     if skf_pa == skf_pb:
                         pa, pb = population[skf_pa].__getRandomItems__(size= 2, replace=False)
+                        if np.all(pa.genes == pb.genes):
+                            pb = population[skf_pb].__getWorstIndividual__
                     else:
                         pa = population[skf_pa].__getRandomItems__()
-                        pb = population[skf_pb].__getRandomItems__()
+                        # pb = population[skf_pb].__getRandomItems__()
                         pass
-                    if np.all(pa.genes == pb.genes):
-                        pb = population[skf_pb].__getWorstIndividual__
 
                     
                     # TM-ANCHOR: inter-crossover: multiparent
@@ -239,8 +239,8 @@ class model(AbstractModel.model):
                     Delta1 = (pa.fcost - oa.fcost) / (pa.fcost ** 2 + 1e-50)
                     Delta2 = (pa.fcost - ob.fcost) / (pa.fcost ** 2 + 1e-50)
 
-                    if Delta1 < 1e-7: Delta1 = 0 
-                    if Delta2 < 1e-7: Delta2 = 0  
+                    # if Delta1 < 1e-7: Delta1 = 0 
+                    # if Delta2 < 1e-7: Delta2 = 0  
                     
                     
                     Delta[skf_pa][skf_pb] += max([Delta1, 0])**2
@@ -261,8 +261,12 @@ class model(AbstractModel.model):
 
                     oa = self.mutation(pa, return_newInd= True)
                     oa.skill_factor = skf_pa
-
+                    while np.all(oa.genes == pa.genes): 
+                        oa = self.mutation(pa, return_newInd= True)
+                    
                     ob = self.mutation(pb, return_newInd= True)
+                    while np.all(ob.genes == pb.genes):
+                        ob = self.mutation(pb, return_newInd= True)
                     ob.skill_factor = skf_pa
 
                 

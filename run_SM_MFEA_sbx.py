@@ -27,7 +27,7 @@ import os
 
 ls_benchmark = []
 ls_IndClass = []
-ls_tasks = [2]
+ls_tasks = [3]
 name_benchmark = [] 
 print(ls_tasks)
 for i in ls_tasks:

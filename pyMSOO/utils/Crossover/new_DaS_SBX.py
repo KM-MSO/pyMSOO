@@ -12,7 +12,7 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
     pa, pb in [0, 1]^n
     '''
 
-    def __init__(self, nc= 2, eta= 3, conf_thres=1):
+    def __init__(self, nc= 2, eta= 3.0, conf_thres=1):
         self.nc = nc
         self.eta = eta
         self.conf_thres = conf_thres
@@ -75,22 +75,18 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         Return id task transferred knowledge 
 
         '''
-        if len(transfered_dims) == self.dim_uss:
-            transfered_dims = [] 
-        if len(transfered_task) == pcd_vector_skfpa.shape[0]: 
-            transfered_task = [transfered_task[1]]
         pcd_vector_skfpa[:, transfered_dims] = 0  # shape: (K, D)
         pcd_vector_skfpa = np.sum(pcd_vector_skfpa, axis=1)
         pcd_vector_skfpa[transfered_task] = 0
         if smp is not None: 
             pcd_vector_skfpa *= smp[:len(pcd_vector_skfpa)]
         pcd_vector_skfpa = pcd_vector_skfpa ** 2 
-        assert np.all(pcd_vector_skfpa) != np.nan
         pcd_vector_skfpa = pcd_vector_skfpa / np.sum(pcd_vector_skfpa)
         return numba_randomchoice_w_prob(pcd_vector_skfpa)
 
 
         # smp = smp[:len(pcd_vector_skfpa)]
+        # smp[transfered_task] = 0 
         # smp /= np.sum(smp)
         # return numba_randomchoice_w_prob(smp)
         # return numba_randomchoice_w_prob(smp_vector)
@@ -142,13 +138,15 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         transfered_dims, transferred_tasks = [], [skf_pb, pa.skill_factor]
 
         pb = population[skf_pb].__getRandomItems__()
+        if np.all(pa.genes == pb.genes):
+            pb = population[skf_pb].__getWorstIndividual__
 
         gene_oa, gene_ob, idx_crossover = self.__class__._crossover(pa.genes, pb.genes, 1, self.dim_uss, nc=self.nc,
                                                                     pcd=self.prob[pa.skill_factor][pb.skill_factor], 
                                                                     gene_p_of_oa=pa.genes,
                                                                     gene_p_of_ob=pa.genes,
                                                                     swap= pa.skill_factor == skf_pb, 
-                                                                    must_transfer= False,
+                                                                    must_transfer= True,
                                                                     #    transfered_dims= transfered_dims if len(transfered_dims) > 0 else None
                                                                     )
         idx_crossover = np.where(idx_crossover)[0]
@@ -158,6 +156,8 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
         while count_crossover < self.number_parent:
             if len(transfered_dims) == self.dim_uss:
                 break
+            if len(transferred_tasks) == len(self.tasks):
+                break 
             skf_pc = self.choose_task_transfer(
                 pcd_vector_skfpa=self.prob[pa.skill_factor].copy(),
                 transfered_dims=transfered_dims,
@@ -184,8 +184,8 @@ class new_DaS_SBX_Crossover(AbstractCrossover):
             gene_oa[idx_crossover] = gene_oc1[idx_crossover]
             gene_ob[idx_crossover] = gene_oc2[idx_crossover]
 
-            if len(idx_crossover) > 0: 
-                count_crossover += 1 
+ 
+            count_crossover += 1 
 
             # gene_oa, _, idx_crossover = self.__class__._crossover(
             #     gene_pa = gene_oa,
