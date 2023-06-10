@@ -274,7 +274,6 @@ class LSHADE_LSA21(AbstractSearch):
         F = 0
         
         while F <= 0:
-            
             F= numba_random_cauchy(self.M_F[ind.skill_factor][k], 0.1)
             # F = scipy.stats.cauchy.rvs(loc= self.M_F[ind.skill_factor][k], scale= 0.1) 
             

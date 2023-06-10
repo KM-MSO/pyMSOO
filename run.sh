@@ -1,5 +1,1 @@
-python run_multiparent.py & 
-python run_multiparent.py & 
-python run_multiparent.py & 
-python run_multiparent.py 
-done 
+python run_SM_MFEA_competition.py

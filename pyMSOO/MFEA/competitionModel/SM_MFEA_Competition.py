@@ -57,12 +57,15 @@ class model(AbstractModel.model):
         search: Search.DifferentialEvolution.LSHADE_LSA21,
         dimension_strategy: DimensionAwareStrategy.AbstractDaS = DimensionAwareStrategy.NoDaS(),
         selection: Selection.AbstractSelection= Selection.ElitismSelection(), 
-        # multi_parent = Crossover.new_DaS_SBX_Crossover(),
+        multi_parent = Crossover.new_DaS_SBX_Crossover(),
         *args, **kwargs):
         super().compile(IndClass, tasks, crossover, mutation, dimension_strategy, selection, *args, **kwargs)
         self.search = search 
         self.search.getInforTasks(IndClass, tasks, seed = self.seed)
 
+
+        self.multi_parent_crossover = multi_parent
+        self.multi_parent_crossover.getInforTasks(IndClass, tasks, self.seed)
         # self.multi_parent_crossover = multi_parent 
         # self.multi_parent_crossover.getInforTasks(IndClass, tasks, self.seed)
 
@@ -122,6 +125,7 @@ class model(AbstractModel.model):
             lr = 0.1, mu= 0.1,
             evaluate_initial_skillFactor = False,
             local_search = True, 
+            stop_early = -1,
             *args, **kwargs):
         super().fit(*args, **kwargs)
         
@@ -196,7 +200,8 @@ class model(AbstractModel.model):
 
                     self.render_process(epoch/nb_generations, ['Pop_size', 'Cost'], [[len(population)], self.history_cost[-1]], use_sys= True)
                     epoch += 1
-                
+                    if stop_early != -1 and epoch > stop_early: 
+                        return 
                 skf_pa = idx_task 
 
                 smp = M_smp[skf_pa].get_smp()
@@ -246,16 +251,7 @@ class model(AbstractModel.model):
 
                     else:
                         pa = population[skf_pa][idx_ind]
-                        pb = population[skf_pb].__getRandomItems__()
-
-                        if np.all(pa.genes == pb.genes):
-                            pb = population[skf_pb].__getWorstIndividual__
-                        
-                        oa, ob = self.crossover(pa, pb, skf_pa, skf_pa, population)
-
-                        # dimension strategy
-                        oa = self.dimension_strategy(oa, pb.skill_factor, pa)
-                        ob = self.dimension_strategy(ob, pb.skill_factor, pb if skf_pa == skf_pb else pa)
+                        oa, ob = self.multi_parent_crossover(pa, skf_pb, population, smp)
                         
                         # add oa, ob to offsprings population and eval fcost
                         offsprings.__addIndividual__(oa)
@@ -290,9 +286,13 @@ class model(AbstractModel.model):
 
                     oa = self.mutation(pa, return_newInd= True)
                     oa.skill_factor = skf_pa
-
-                    ob = self.mutation(pb, return_newInd= True) 
-                    ob.skill_factor = skf_pa 
+                    while np.all(oa.genes == pa.genes): 
+                        oa = self.mutation(pa, return_newInd= True)
+                    
+                    ob = self.mutation(pb, return_newInd= True)
+                    while np.all(ob.genes == pb.genes):
+                        ob = self.mutation(pb, return_newInd= True)
+                    ob.skill_factor = skf_pa
 
 
                 
@@ -325,24 +325,24 @@ class model(AbstractModel.model):
             # merge
             population = offsprings
             population.update_rank()
-
-            if count_loop % 50 == 0: 
-                # if (epoch - before_epoch) > kwargs['step_over']: 
-                for skf in range(len(self.tasks)): 
+            # TM-FIXME 
+            # if count_loop % 50 == 0: 
+            #     # if (epoch - before_epoch) > kwargs['step_over']: 
+            #     for skf in range(len(self.tasks)): 
                     
-                    ls = Search.LocalSearch_DSCG()
-                    ls.getInforTasks(self.IndClass, self.tasks, seed= self.seed)
+            #         ls = Search.LocalSearch_DSCG()
+            #         ls.getInforTasks(self.IndClass, self.tasks, seed= self.seed)
                     
-                    ind = population[skf].getSolveInd()
-                    evals, new_ind = ls.search(ind, fes = 2000)
-                    eval_k[skf] += evals
-                    if new_ind.fcost < ind.fcost : 
-                        idx = int(np.where(population[skf].factorial_rank == 1)[0])
-                        population[skf].ls_inds[idx].genes = new_ind.genes 
-                        population[skf].ls_inds[idx].fcost = new_ind.fcost 
-                        # population[skf].ls_inds[0].genes= new_ind.genes 
-                        # population[skf].ls_inds[0].fcost = new_ind.fcost
-                        population.update_rank()  
+            #         ind = population[skf].getSolveInd()
+            #         evals, new_ind = ls.search(ind, fes = 2000)
+            #         eval_k[skf] += evals
+            #         if new_ind.fcost < ind.fcost : 
+            #             idx = int(np.where(population[skf].factorial_rank == 1)[0])
+            #             population[skf].ls_inds[idx].genes = new_ind.genes 
+            #             population[skf].ls_inds[idx].fcost = new_ind.fcost 
+            #             # population[skf].ls_inds[0].genes= new_ind.genes 
+            #             # population[skf].ls_inds[0].fcost = new_ind.fcost
+            #             population.update_rank()  
 
             # selection
             nb_inds_tasks = [int(
@@ -355,7 +355,7 @@ class model(AbstractModel.model):
             self.mutation.update(population = population)
             self.dimension_strategy.update(population = population)
             self.search.update(population) 
-
+            self.multi_parent_crossover.update(population= population)
 
             # update smp
             for skf in range(len(self.tasks)):
@@ -369,4 +369,3 @@ class model(AbstractModel.model):
         print(eval_k)
         print('END!')
         return self.last_pop.get_solves()
-    
