@@ -24,53 +24,58 @@ from pyMSOO.utils.Compare.compareModel import CompareModel
 import pandas as pd 
 import numpy as np 
 import os 
+import sys 
 
-ls_benchmark = []
-ls_IndClass = []
-ls_tasks = [2]
-name_benchmark = [] 
-print(ls_tasks)
-for i in ls_tasks:
-    # t, ic = WCCI22_benchmark.get_complex_benchmark(i)
-    t, ic = WCCI22_benchmark.get_50tasks_benchmark(i)
-    ls_benchmark.append(t)
-    ls_IndClass.append(ic)
-    name_benchmark.append(str(i))
+if __name__== "__main__":
+    ls_benchmark = []
+    ls_IndClass = []
+    if len(sys.argv) > 1: 
+        ls_tasks = [int(sys.argv[1])]
+    else:    ls_tasks = [1]
+    
+    name_benchmark = [] 
+    print(ls_tasks)
+    for i in ls_tasks:
+        # t, ic = WCCI22_benchmark.get_complex_benchmark(i)
+        t, ic = WCCI22_benchmark.get_50tasks_benchmark(i)
+        ls_benchmark.append(t)
+        ls_IndClass.append(ic)
+        name_benchmark.append(str(i))
 
-# # cec17
-# t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_quite_complicate()
-# t, ic = CEC17_benchmark.get_10tasks_benchmark()
-# path = './RESULTS/result/CEC17/SM_MFEA/'
+    # # cec17
+    # t, ic = CEC17_benchmark.get_10_tasks_benchmark_ver_quite_complicate()
+    # t, ic = CEC17_benchmark.get_10tasks_benchmark()
+    # path = './RESULTS/result/CEC17/SM_MFEA/'
 
-# ls_benchmark = [t]
-# ls_IndClass = [ic]
-# name_benchmark = ["multiparent_eta_15e-1"]
+    # ls_benchmark = [t]
+    # ls_IndClass = [ic]
+    # name_benchmark = ["multiparent_eta_15e-1"]
 
-model = SM_MFEA_Multiparent
-print(name_benchmark)
+    model = SM_MFEA_Multiparent
+    print(name_benchmark)
 
-smpModel = MultiBenchmark(
-    ls_benchmark= ls_benchmark,
-    name_benchmark= name_benchmark,
-    ls_IndClass= ls_IndClass,
-    model= model 
-)
+    smpModel = MultiBenchmark(
+        ls_benchmark= ls_benchmark,
+        name_benchmark= name_benchmark,
+        ls_IndClass= ls_IndClass,
+        model= model 
+    )
 
-smpModel.compile( 
-        crossover= SBX_Crossover(nc = 2),
-        mutation= PolynomialMutation(nm = 50, pm=1/50),
-        dimension_strategy= DaS_strategy(eta= 3),
-        # dimension_strategy = NoDaS(), 
-        search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
-        selection = ElitismSelection(random_percent= 0.0)
-)
-smpModel.fit(
-        nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 50,
-        lr = 0.1 ,mu= 0.1,
-        evaluate_initial_skillFactor= True, 
-        stop_early = -1,  
-)
-a = smpModel.run(
-    nb_run= 1,     
-    save_path= './RESULTS/result/GECCO20/check/SMP_MFEA_multiparent_050623/'
-)
+    smpModel.compile( 
+            crossover= SBX_Crossover(nc = 2),
+            mutation= PolynomialMutation(nm = 5, pm=1),
+            dimension_strategy= DaS_strategy(eta= 3),
+            # dimension_strategy = NoDaS(), 
+            search = DifferentialEvolution.LSHADE_LSA21(p_ontop= 0.11, len_mem= 30),
+            selection = ElitismSelection(random_percent= 0.0)
+    )
+    smpModel.fit(
+            nb_generations= 1000, nb_inds_each_task= 100, nb_inds_min= 30,
+            lr = 0.1 ,mu= 0.1,
+            evaluate_initial_skillFactor= True, 
+            stop_early = -1,  
+    )
+    a = smpModel.run(
+        nb_run= 30,     
+        save_path= './RESULTS/result/GECCO20/check/110623/pm_1_multiparent_thresh_2e-1_Nmin_30/'
+    )
