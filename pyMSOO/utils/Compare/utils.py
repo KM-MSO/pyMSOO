@@ -43,10 +43,11 @@ def render_cec_17(ls_model, ls_label, shape = (2, 5), min_cost= 1e-6):
         y_tick_size= 20,
         handletextpad= 1,
         # borderaxespad=0.8,
-        bbox_to_anchor=(0.5,-0.06),
+        bbox_to_anchor=(0.5,-0.1),
         legend_size= 21,
         scatter_size=10,
-        re= True
+        re= True,
+        # label_shape= (2, len(ls_model) // 2 )
     )
 
     return fig

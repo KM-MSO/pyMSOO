@@ -70,10 +70,11 @@ class model(AbstractModel.model):
                 tasks: list[AbstractTask], 
                 crossover: Crossover.AbstractCrossover, 
                 mutation: Mutation.AbstractMutation,
-                search: Search.DifferentialEvolution.LSHADE_LSA21, 
+                search: Search.DifferentialEvolution.LSHADE_LSA21,
                 local_search: Search.LocalSearch_DSCG, 
                 # TM-TODO: adding multiparent crossover
                 selection: Selection.ElitismSelection, 
+                multi_parent= Crossover.new_DaS_SBX_Crossover(),  
                 *args, **kwargs,
                 ):
         super().compile(
@@ -84,6 +85,9 @@ class model(AbstractModel.model):
             selection= selection, 
             *args, **kwargs
         )
+
+        self.multiparent_crossover= multi_parent 
+        self.multiparent_crossover.getInforTasks(IndClass, tasks, self.seed)
 
         self.search = search
         self.search.getInforTasks(
@@ -255,7 +259,10 @@ class model(AbstractModel.model):
                 else: 
                     pb = population[skf_pb].__getRandomItems__(size=1)[0]
 
-                    oa, ob = self.crossover(pa, pb, skf_pa, skf_pa)
+                    # oa, ob = self.crossover(pa, pb, skf_pa, skf_pa)
+                    oa, ob = self.multiparent_crossover(
+                        pa, skf_pb, population, None,
+                    )
 
                     offsprings.__addIndividual__(oa) 
                     offsprings.__addIndividual__(ob) 
@@ -302,6 +309,7 @@ class model(AbstractModel.model):
             self.crossover.update(population) 
             self.mutation.update(population) 
             self.search.update(population) 
+            self.multiparent_crossover.update(population)
 
             # update rmp 
             self.rmp.update() 

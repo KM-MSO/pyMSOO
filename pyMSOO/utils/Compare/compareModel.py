@@ -20,7 +20,11 @@ class CompareModel():
                     label[idx] = self.models[idx].name
 
         self.label = label
-        self.ls_marker = ["X", "D", "*", "o", "^", "v", "<", ">", "s", "P"]
+        self.ls_marker = ["X", "D", "*", "o", "^", "v", "<", ">", "s", "P", "h", "1", "2", "3", "4", ]
+        # self.ls_color = ["#76BACB","#A6DDD7", "#A7D6AF", "#00FF00", "#6495ED","#00FFFF", "#FFF7D6", "#FFFF00","#EFDAB1","#800000", "#FFAFA3", "#FFB8DE", "#BCB8E3", "#FF0000"]
+        self.ls_color = ["#000080", "#CD7F32", "#64E986", "#007C80", "#FEA3AA", 
+                         "#01F9C6", "#5CB3FF", "#728C00", "#E2F516", "#FF8C00", 
+                         "#F70D1A", "#B666D2"]
 
     def render(self, shape: tuple = None, min_cost=0, nb_generations: int = None, step=1, figsize: Tuple[int, int] = None, dpi=200, 
                yscale: str = None, re=False, label_shape=None, label_loc=None, grid = True, title= None, showname= True, 
@@ -63,14 +67,14 @@ class CompareModel():
         else: 
             # fig.suptitle("\n", size=15)
             pass
-        fig.set_facecolor((208/255, 206/255, 206/255, 1))
+        # fig.set_facecolor((208/255, 206/255, 206/255, 1))
         fig.subplots(shape[0], shape[1])
 
         if step >= 10:
             marker = 'o'
         else:
             marker = None
-
+        count_color = 0 
         for idx_task, task in enumerate(self.models[0].tasks):
             for idx_model, model in enumerate(self.models):
                 fig.axes[idx_task].plot(
@@ -86,6 +90,7 @@ class CompareModel():
                     label=self.label[idx_model],
                     markersize= scatter_size,
                     marker=marker if marker is None else self.ls_marker[idx_model],
+                    color= self.ls_color[idx_model]
                 )
                 # plt.legend()
                 if yscale is not None:
@@ -126,9 +131,10 @@ class CompareModel():
         lines, labels = fig.axes[-1].get_legend_handles_labels()
         if bbox_to_anchor is not None: 
             # leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 0), fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
-            leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 1), fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
+            # leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 1), fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
+            leg = fig.legend(lines, labels, fontsize= legend_size, handletextpad=handletextpad, loc=label_loc, ncol=label_shape[1], bbox_to_anchor=bbox_to_anchor, borderaxespad=borderaxespad)
         else:
-            leg = fig.legend(lines, labels,facecolor=(208/255, 206/255, 206/255, 1),fontsize=legend_size, handletextpad= handletextpad, loc=label_loc, ncol=label_shape[1])
+            leg = fig.legend(lines, labels, fontsize=legend_size, handletextpad= handletextpad, loc=label_loc, ncol=label_shape[1])
         if pad is not None: 
             fig.tight_layout(pad) 
         else:
