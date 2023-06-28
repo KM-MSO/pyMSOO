@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import jit, njit
 import math 
 import scipy
 
@@ -45,3 +45,7 @@ def numba_linalgo_pinv(matrix):
 @jit(nopython = True)
 def numba_dot(a, b):
     return np.dot(a, b)
+
+@njit
+def numba_argsort(arr):
+    return np.argsort(np.array(arr))
