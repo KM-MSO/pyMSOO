@@ -44,7 +44,8 @@ class func():
         w_U = U - mat_mul
         if not (np.all(w_L >= 0) and np.all(w_U >= 0)):
             sum_arr = np.where(w_L < 0, - w_L, 0) + np.where(w_U < 0, - w_U, 0)
-            return 1e10 + np.sum(sum_arr) * 1e20
+            return 1e10 + 1e20 * np.sum(sum_arr)
+            # return c[idx_n] @ x[idx_n] * ( 1 + 1e50 * np.sum(sum_arr))
         else:
             return c[idx_n] @ x[idx_n]
 
@@ -107,7 +108,7 @@ def run(DaS, idx_data, nb_tasks, per_C, nb_run= 3):
         IndClass= IndClass,
         tasks= tasks,
         crossover= SBX_Crossover(nc = 2),
-        mutation= PolynomialMutation(nm = 7),
+        mutation= PolynomialMutation(nm = 7, pm= 1/n),
         # selection= ElitismSelection(random_percent= 0.05), 
         dimension_strategy= DimensionAwareStrategy.DaS_strategy(eta= 3) if DaS else DimensionAwareStrategy.NoDaS()
     )
