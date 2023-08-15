@@ -28,14 +28,19 @@ class func():
         self.idx_n = idx_n
     
     def check_valid(self, x):
-        mat_mul = self.a[:, self.idx_n] @ x[self.idx_n]
-        w_L = mat_mul - self.L
-        w_U = self.U - mat_mul
+        return self.__class__.__is_valid(x, self.a, self.L, self.U, self.idx_n)
+
+    @staticmethod  
+    @jit(nopython=True)
+    def __is_valid(x, a, L, U, idx_n):
+        mat_mul = a[:, idx_n] @ x[idx_n]
+        w_L = mat_mul - L
+        w_U = U - mat_mul
         if (np.all(w_L >= 0) and np.all(w_U >= 0)):
             return True, None, None, None
         else:
-            return False, mat_mul, self.L, self.U
-
+            return False, mat_mul, L, U
+         
     @staticmethod
     @jit(nopython=True)
     def get_f(x, a, L, U, c, idx_n):
@@ -44,8 +49,8 @@ class func():
         w_U = U - mat_mul
         if not (np.all(w_L >= 0) and np.all(w_U >= 0)):
             sum_arr = np.where(w_L < 0, - w_L, 0) + np.where(w_U < 0, - w_U, 0)
-            return 1e10 + 1e20 * np.sum(sum_arr)
-            # return c[idx_n] @ x[idx_n] * ( 1 + 1e50 * np.sum(sum_arr))
+            # return 1e10 + 1e20 * np.sum(sum_arr)
+            return c[idx_n] @ x[idx_n] * ( 1 + 1e12 * np.sum(sum_arr))
         else:
             return c[idx_n] @ x[idx_n]
 
@@ -83,7 +88,7 @@ def get_tasks(idx, nb_tasks= 10, per_C=0.3):
         idx_n = np.arange(n)
         # idx_n = np.random.choice(_n, size=_n, replace= False)
         idx_m = np.random.choice(_m, size=_m, replace= False)
-        if np.random.rand() < 0:
+        if np.random.rand() < 1:
             others_func.append(func(_n, _m, a[idx_m][:, idx_n], L[idx_m], U[idx_m], c[idx_n], idx_n))
         else:
             others_func.append(func(_n, _m, 
@@ -109,13 +114,13 @@ def run(DaS, idx_data, nb_tasks, per_C, nb_run= 3):
         tasks= tasks,
         crossover= SBX_Crossover(nc = 2),
         mutation= PolynomialMutation(nm = 7, pm= 1/n),
-        # selection= ElitismSelection(random_percent= 0.05), 
+        # selection= ElitismSelection(random_percent= 0.1), 
         dimension_strategy= DimensionAwareStrategy.DaS_strategy(eta= 3) if DaS else DimensionAwareStrategy.NoDaS()
     )
     SM_SBX.fit(
         nb_generations= max(n * 15, 2000), nb_inds_each_task= n * 2, nb_inds_min= n * 1,
         lr = 0.1, mu=0.1,
-        evaluate_initial_skillFactor= True
+        evaluate_initial_skillFactor= False
     )
     SM_SBX.run(
         nb_run= nb_run,
